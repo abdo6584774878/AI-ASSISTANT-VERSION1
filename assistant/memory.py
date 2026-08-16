@@ -83,6 +83,17 @@ class Memory:
                 (title, conversation_id)
             )
     
+    def delete_conversation(self, conversation_id):
+        with self.conn:
+            self.conn.execute(
+                "DELETE FROM messages WHERE conversation_id = ?",
+                (conversation_id,)
+            )
+            cursor = self.conn.execute(
+                "DELETE FROM conversations WHERE id = ?",
+                (conversation_id,)
+            )
+        return cursor.rowcount > 0 # Return True if any rows were deleted
     def add_message(self, conversation_id, role, message):
         with self.conn:
             self.conn.execute(

@@ -57,3 +57,6 @@ class FakeAssistant(BaseAssistant):
             self.conversation_id,
             title
         )
+    
+    def delete_conversation(self, conversation_id):
+        return self.memory.delete_conversation(conversation_id)
