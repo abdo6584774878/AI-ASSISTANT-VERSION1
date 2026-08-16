@@ -9,3 +9,10 @@ dependencies = [
     "ipykernel>=7.3.0",
     "python-dotenv>=1.2.2",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+[tool.pytest.ini_options]
+pythonpath = ["."]

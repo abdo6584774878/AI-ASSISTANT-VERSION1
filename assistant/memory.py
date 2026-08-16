@@ -66,7 +66,7 @@ class Memory:
         cursor = self.conn.execute(
             """SELECT id, title, created_at 
             FROM conversations 
-            ORDER BY created_at DESC
+            ORDER BY created_at DESC, id DESC
             LIMIT 1"""
         )
 
