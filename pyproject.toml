@@ -1,7 +1,7 @@
 [project]
 name = "ai-assistant"
 version = "0.1.0"
-description = "Add your description here"
+description = "A modular terminal-based AI assistant built with Python and Google Gemini."
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
