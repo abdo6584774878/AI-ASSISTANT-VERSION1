@@ -2,34 +2,6 @@ from assistant.memory import Memory
 from assistant.history import memory_to_gemini_history
 
 
-memory = Memory()
-
-conversation_id = memory.create_conversation("History Test")
-
-memory.add_message(
-    conversation_id,
-    "user",
-    "Hello"
-)
-
-memory.add_message(
-    conversation_id,
-    "assistant",
-    "Hi! How can I help?"
-)
-
-messages = memory.get_messages(conversation_id)
-
-print("Messages from SQLite:")
-print(messages)
-
-history = memory_to_gemini_history(messages)
-
-print("\nConverted Gemini history:")
-
-for item in history:
-    print(item)
-    
 def test_history_integration():
     memory = Memory(":memory:")
 
