@@ -116,5 +116,21 @@ def test_get_latest_conversation():
     assert latest is not None
     assert latest[0] == second_id
     assert latest[1] == "Latest"
+def test_delete_conversation():
+    memory = Memory(":memory:")
+
+    conversation_id = memory.create_conversation("To Delete")
+
+    memory.add_message(
+        conversation_id,
+        "user",
+        "This should be deleted."
+    )
+
+    result = memory.delete_conversation(conversation_id)
+
+    assert result is True
+    assert memory.get_conversation(conversation_id) is None
+    assert memory.get_messages(conversation_id) == []
 
 

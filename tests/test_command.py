@@ -135,3 +135,60 @@ def test_exit_command():
     result = handle_command("/exit", assistant)
 
     assert result == "exit"
+def test_delete_command(monkeypatch, capsys):
+    assistant = FakeAssistant()
+
+    conversation_id = assistant.memory.create_conversation("Delete Test")
+
+    monkeypatch.setattr("builtins.input", lambda _: "y")
+
+    result = handle_command(
+        f"/delete {conversation_id}",
+        assistant
+    )
+
+    captured = capsys.readouterr()
+
+    assert result == "handled"
+    assert f"Conversation {conversation_id} deleted." in captured.out
+    assert assistant.memory.get_conversation(conversation_id) is None
+def test_delete_command_cancelled(monkeypatch, capsys):
+    assistant = FakeAssistant()
+
+    conversation_id = assistant.memory.create_conversation("Keep This")
+
+    monkeypatch.setattr("builtins.input", lambda _: "n")
+
+    result = handle_command(
+        f"/delete {conversation_id}",
+        assistant
+    )
+
+    captured = capsys.readouterr()
+
+    assert result == "handled"
+    assert assistant.memory.get_conversation(conversation_id) is not None
+    assert "cancelled" in captured.out.lower()
+def test_delete_nonexistent_conversation(monkeypatch, capsys):
+    assistant = FakeAssistant()
+
+    monkeypatch.setattr("builtins.input", lambda _: "y")
+
+    result = handle_command(
+        "/delete 99999",
+        assistant
+    )
+
+    captured = capsys.readouterr()
+
+    assert result == "handled"
+    assert "not found" in captured.out.lower()
+def test_delete_without_id(capsys):
+    assistant = FakeAssistant()
+
+    result = handle_command("/delete", assistant)
+
+    captured = capsys.readouterr()
+
+    assert result == "handled"
+    assert "usage" in captured.out.lower()
