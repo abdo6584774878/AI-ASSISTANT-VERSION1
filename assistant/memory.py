@@ -55,12 +55,13 @@ class Memory:
         return cursor.fetchone()
     def get_conversation_title(self, conversation_id):
         cursor = self.conn.execute(
-            """SELECT id, title, created_at 
+            """SELECT title 
             FROM conversations 
             WHERE id = ?""",
             (conversation_id,)
         )
-        return cursor.fetchone()
+        result = cursor.fetchone()
+        return result[0] if result else None
     def get_latest_conversation(self):
         cursor = self.conn.execute(
             """SELECT id, title, created_at 

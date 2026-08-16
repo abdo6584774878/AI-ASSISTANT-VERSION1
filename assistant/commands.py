@@ -77,7 +77,7 @@ def handle_command(command, assistant):
             print("Usage: /rename <new_title>")
             return "handled"
         title = parts[1].strip()
-        assistant.rename_conversation(title)
+        assistant.memory.update_conversation_title(assistant.conversation_id, title)
         print(f"Conversation renamed to: {title}")
         return "handled"
     return None
