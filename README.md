@@ -41,10 +41,12 @@ AI_ASSISTANT/
 │   └── memory.py
 │
 ├── tests/
-│   ├── test_memory.py
-│   ├── test_history.py
-│   ├── test_history_integration.py
-│   └── test_commands.py
+|   ├── test_assistant.py
+|    ├── test_command.py
+|    ├── test_conversation.py
+|    ├── test_history.py
+|    ├── test_history_integration.py
+|    └── test_memory.py
 │
 ├── main.py
 ├── pyproject.toml
@@ -161,6 +163,15 @@ The test suite covers:
 - Command handling
 - Integration between memory and history components
 - Invalid command inputs
+- AIAssistant behavior
+- Gemini interaction through mocks
+- API error/rate-limit handling
+- automatic title generation
+- conversation management
+- SQLite persistence
+- history conversion
+- command handling
+- integration tests
 
 ## 🛠️ Tech Stack
 
