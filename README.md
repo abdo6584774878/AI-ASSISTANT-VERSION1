@@ -24,7 +24,7 @@ The project focuses on clean software architecture, persistent conversation memo
 
 ## 🏗️ Architecture
 
-The project is organized into separate components responsible for different parts of the application:
+The project follows a modular architecture that separates the application interface, assistant implementations, conversation persistence, command handling, and AI history management.
 
 ```text
 AI_ASSISTANT/
@@ -78,6 +78,14 @@ Converts stored conversation messages into the format required by the Gemini API
 **`fake_assistant.py`**
 
 Provides a lightweight assistant implementation for testing command behavior without making real API requests.
+
+**`factory.py`**
+
+Creates the assistant implementation based on the configured backend, allowing the application to use either the fake testing backend or the Gemini backend.
+
+**`base.py`**
+
+Defines the common assistant interface used by the different assistant implementations.
 
 ## ⚙️ Requirements
 
@@ -144,34 +152,29 @@ This allows conversations to remain available after restarting the application.
 ## 🧪 Testing
 
 The project uses `pytest` for automated testing.
-
+The current test suite contains 54 automated tests, all passing.
 Run the complete test suite:
 
 ```bash
 uv run pytest
 ```
-
 The test suite covers:
 
-- Conversation creation
-- Conversation retrieval
-- Conversation renaming
-- Conversation switching
-- Message storage
-- Conversation history
-- Gemini history conversion
-- Command handling
-- Integration between memory and history components
-- Invalid command inputs
 - AIAssistant behavior
-- Gemini interaction through mocks
-- API error/rate-limit handling
-- automatic title generation
-- conversation management
-- SQLite persistence
-- history conversion
-- command handling
-- integration tests
+- Message sending and persistence
+- Gemini history reconstruction
+- Conversation creation and retrieval
+- Conversation switching
+- Conversation renaming
+- Conversation deletion
+- Conversation history clearing
+- Automatic conversation title generation
+- API error and rate-limit handling
+- Command handling
+- Invalid command inputs
+- SQLite memory persistence
+- Memory/history integration
+- Fake assistant behavior
 
 ## 🛠️ Tech Stack
 
