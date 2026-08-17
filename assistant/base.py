@@ -28,6 +28,10 @@ class BaseAssistant(ABC):
         pass
 
     @abstractmethod
+    def get_conversation(self, conversation_id):
+        pass
+
+    @abstractmethod
     def list_conversations(self):
         pass
 
@@ -37,4 +41,8 @@ class BaseAssistant(ABC):
 
     @abstractmethod
     def delete_conversation(self, conversation_id):
+        pass
+
+    @abstractmethod
+    def get_current_conversation_id(self):
         pass

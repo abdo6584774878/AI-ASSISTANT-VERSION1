@@ -12,7 +12,7 @@ class FakeAssistant(BaseAssistant):
         )
         else:
             self.conversation_id = conversation[0]
-        
+
 
     def send_message(self, message):
         self.memory.add_message(
@@ -35,32 +35,38 @@ class FakeAssistant(BaseAssistant):
         self.memory.clear_memory(
             self.conversation_id
         )
-    
+
     def switch_conversation(self, conversation_id):
         conversation = self.memory.get_conversation(conversation_id)
 
         if conversation is None:
-          return False
+          return False, "Conversation not found"
 
         self.conversation_id = conversation_id
-        return True
-    
+        return True, "Conversation switched successfully"
+
     def create_new_conversation(self, title):
         self.conversation_id = self.memory.create_conversation(title)
         return self.conversation_id
-    
+
     def get_current_conversation(self):
         return self.memory.get_conversation(self.conversation_id)
-    
+
     def list_conversations(self):
         return self.memory.get_conversations()
-    
+
     def rename_conversation(self, title):
         self.memory.update_conversation_title(
             self.conversation_id,
             title
         )
-    
+
     def delete_conversation(self, conversation_id):
         return self.memory.delete_conversation(conversation_id)
-    
+
+
+    def get_conversation(self, conversation_id):
+        return self.memory.get_conversation(conversation_id)
+
+    def get_current_conversation_id(self):
+        return self.conversation_id

@@ -41,12 +41,12 @@ def handle_command(command, assistant):
         except (IndexError, ValueError):
             print("Usage: /switch <conversation_id>")
             return "handled"
-        success = assistant.switch_conversation(conversation_id)
-        
+        success, _ = assistant.switch_conversation(conversation_id)
+
         if success:
-            print(f"Switched to conversation: {conversation_id}")
+           print(f"Switched to conversation: {conversation_id}")
         else:
-            print(f"Conversation with ID {conversation_id} not found.")
+           print(f"Conversation with ID {conversation_id} not found.")
         return "handled"
     
     if command.lower().startswith("/new"):
@@ -93,10 +93,10 @@ def handle_command(command, assistant):
             print("Invalid conversation ID. It should be an integer.")
             return "handled"
         
-        if conversation_id == assistant.conversation_id:
+        if conversation_id == assistant.get_current_conversation_id():
             print("Cannot delete the current conversation. Please switch to another conversation first.")
             return "handled"
-        conversation = assistant.memory.get_conversation(conversation_id)
+        conversation = assistant.get_conversation(conversation_id)
         if conversation is None:
             print(f"conversation {conversation_id} not found")
             return "handled"
