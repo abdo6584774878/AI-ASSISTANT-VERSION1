@@ -83,9 +83,30 @@ class AIAssistant(BaseAssistant):
             title
         )
         return title
+    
+    def build_memory_context(self, message):
+        memories = self.memory.search_memories(message)
+
+        if not memories:
+            return ""
+
+        lines = ["Relevant memories:"]
+
+        for _, category, key, value, _, _ in memories:
+            lines.append(
+                f"- [{category}] {key}: {value}"
+            )
+
+        return "\n".join(lines)
+    
     def send_message(self, message):
         try:
-            response = self.chat.send_message(message)
+            memory_context = self.build_memory_context(message)
+            if memory_context:
+                prompt = f"{memory_context}\n\nUser message : {message}"
+            else:
+                prompt=message
+            response = self.chat.send_message(prompt)
             self.memory.add_message(
                 self.conversation_id,
                 "user",
@@ -131,7 +152,8 @@ class AIAssistant(BaseAssistant):
 
     def get_current_conversation_id(self):
         return self.conversation_id
-
+    
+    
 
 
 

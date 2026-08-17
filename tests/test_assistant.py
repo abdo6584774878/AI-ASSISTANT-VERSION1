@@ -438,3 +438,81 @@ def test_create_chat_uses_saved_history(monkeypatch):
     assert history[0].parts[0].text == "Hello"
     assert history[1].role == "model"
     assert history[1].parts[0].text == "Hi!"
+
+
+def test_build_memory_context():
+    assistant = object.__new__(AIAssistant)
+
+    from assistant.memory import Memory
+    assistant.memory = Memory(":memory:")
+
+    assistant.memory.create_memory(
+        "preference",
+        "language",
+        "Python"
+    )
+
+    assistant.memory.create_memory(
+        "goal",
+        "career",
+        "Cybersecurity"
+    )
+
+    context = assistant.build_memory_context(
+        "What programming language should I use?"
+    )
+
+    assert "Python" in context
+    assert "language" in context
+
+
+def test_build_memory_context_no_memories():
+    assistant = object.__new__(AIAssistant)
+
+    from assistant.memory import Memory
+    assistant.memory = Memory(":memory:")
+
+    context = assistant.build_memory_context(
+        "What should I learn?"
+    )
+
+    assert context == ""
+
+
+def test_send_message_uses_memory_context(monkeypatch):
+    assistant = object.__new__(AIAssistant)
+
+    from assistant.memory import Memory
+    assistant.memory = Memory(":memory:")
+
+    conversation_id = assistant.memory.create_conversation("Test")
+    assistant.conversation_id = conversation_id
+
+    assistant.memory.create_memory(
+        "preference",
+        "language",
+        "Python"
+    )
+
+    class FakeResponse:
+        text = "You are learning Python."
+
+    class FakeChat:
+        def send_message(self, message):
+            assert "Python" in message
+            assert "Relevant memories:" in message
+            return FakeResponse()
+
+    assistant.chat = FakeChat()
+
+    monkeypatch.setattr(
+        assistant,
+        "auto_title_conversation",
+        lambda message: None
+    )
+
+    result = assistant.send_message(
+        "What programming language am I learning?"
+    )
+
+    assert result == "You are learning Python."

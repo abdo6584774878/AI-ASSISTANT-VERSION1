@@ -192,4 +192,29 @@ class Memory:
                  (memory_id,)
         )
         return cursor.rowcount > 0
-            
+    def search_memories(self, query):
+        words = query.lower().split()
+        
+        if not words:
+            return[]
+        conditions = []
+        parameters = []
+        
+        for word in words:
+            conditions.append(
+                "(LOWER(key) LIKE ? OR LOWER(value) LIKE ?)"
+            )
+            parameters.extend([
+                f"%{word}%",
+                f"%{word}%"
+            ])
+        cursor = self.conn.execute(
+        f"""
+        SELECT id, category, key, value, created_at, updated_at
+        FROM memories
+        WHERE {" OR ".join(conditions)}
+        ORDER BY id
+        """,
+        parameters
+        )
+        return cursor.fetchall()

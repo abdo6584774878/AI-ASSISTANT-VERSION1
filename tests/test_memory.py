@@ -346,3 +346,69 @@ def test_memories_persist_between_instances(tmp_path):
     assert result[2] == "current"
     assert result[3] == "AI Assistant"
 
+
+def test_search_memories_by_key():
+    memory = Memory(":memory:")
+
+    memory.create_memory(
+        "preference",
+        "language",
+        "Python"
+    )
+
+    memory.create_memory(
+        "goal",
+        "career",
+        "Cybersecurity"
+    )
+
+    results = memory.search_memories("language")
+
+    assert len(results) == 1
+    assert results[0][2] == "language"
+    assert results[0][3] == "Python"
+
+
+def test_search_memories_by_value():
+    memory = Memory(":memory:")
+
+    memory.create_memory(
+        "preference",
+        "language",
+        "Python"
+    )
+
+    results = memory.search_memories("Python")
+
+    assert len(results) == 1
+    assert results[0][2] == "language"
+    assert results[0][3] == "Python"
+
+
+def test_search_memories_case_insensitive():
+    memory = Memory(":memory:")
+
+    memory.create_memory(
+        "preference",
+        "language",
+        "Python"
+    )
+
+    results = memory.search_memories("python")
+
+    assert len(results) == 1
+
+
+def test_search_memories_no_results():
+    memory = Memory(":memory:")
+
+    memory.create_memory(
+        "preference",
+        "language",
+        "Python"
+    )
+
+    results = memory.search_memories("JavaScript")
+
+    assert results == []
+
