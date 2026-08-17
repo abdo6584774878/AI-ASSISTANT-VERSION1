@@ -115,4 +115,101 @@ def handle_command(command, assistant):
             print(f"Conversation {conversation_id} could not be deleted.")
             
         return "handled"
+    if command_name == "/memory":
+        if len(parts) < 2:
+            print("Usage: /memory <add|list|get|delete> ...")
+            return "handled"
+
+        memory_parts = parts[1].split(maxsplit=1)
+        subcommand = memory_parts[0].lower()
+
+        if subcommand == "add":
+            if len(memory_parts) < 2:
+                print("Usage: /memory add <category> <key> <value>")
+                return "handled"
+
+            args = memory_parts[1].split(maxsplit=2)
+
+            if len(args) < 3:
+                print("Usage: /memory add <category> <key> <value>")
+                return "handled"
+
+            category, key, value = args
+
+            memory_id = assistant.memory.create_memory(
+                category,
+                key,
+                value
+            )
+
+            print(f"Memory created with ID: {memory_id}")
+            return "handled"
+
+        if subcommand == "list":
+            memories = assistant.memory.get_memories()
+
+            if not memories:
+                print("No memories found.")
+                return "handled"
+
+            print("Memories:")
+
+            for memory_id, category, key, value, created_at, updated_at in memories:
+                print(
+                    f"{memory_id}: "
+                    f"[{category}] {key} = {value}"
+                )
+
+            return "handled"
+
+        if subcommand == "get":
+            if len(memory_parts) < 2:
+                print("Usage: /memory get <memory_id>")
+                return "handled"
+
+            try:
+                memory_id = int(memory_parts[1])
+            except ValueError:
+                print("Invalid memory ID. It should be an integer.")
+                return "handled"
+
+            memory = assistant.memory.get_memory(memory_id)
+
+            if memory is None:
+                print(f"Memory {memory_id} not found.")
+                return "handled"
+
+            _, category, key, value, created_at, updated_at = memory
+
+            print(f"ID: {memory_id}")
+            print(f"Category: {category}")
+            print(f"Key: {key}")
+            print(f"Value: {value}")
+            print(f"Created At: {created_at}")
+            print(f"Updated At: {updated_at}")
+
+            return "handled"
+
+        if subcommand == "delete":
+            if len(memory_parts) < 2:
+                print("Usage: /memory delete <memory_id>")
+                return "handled"
+
+            try:
+                memory_id = int(memory_parts[1])
+            except ValueError:
+                print("Invalid memory ID. It should be an integer.")
+                return "handled"
+
+            success = assistant.memory.delete_memory(memory_id)
+
+            if success:
+                print(f"Memory {memory_id} deleted.")
+            else:
+                print(f"Memory {memory_id} not found.")
+
+            return "handled"
+
+        print("Usage: /memory <add|list|get|delete> ...")
+        return "handled"
     return None

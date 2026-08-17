@@ -266,3 +266,230 @@ def test_command_with_extra_spaces(capsys):
 
     assert result == "handled"
     assert "Conversation with ID 9999 not found." in captured.out
+
+
+def test_memory_add_command(capsys):
+    assistant = FakeAssistant()
+
+    result = handle_command(
+        "/memory add preference language Python",
+        assistant
+    )
+
+    captured = capsys.readouterr()
+
+    assert result == "handled"
+    assert "Memory created with ID:" in captured.out
+
+    memories = assistant.memory.get_memories()
+
+    assert len(memories) == 1
+    assert memories[0][1] == "preference"
+    assert memories[0][2] == "language"
+    assert memories[0][3] == "Python"
+
+
+def test_memory_list_command(capsys):
+    assistant = FakeAssistant()
+
+    assistant.memory.create_memory(
+        "preference",
+        "language",
+        "Python"
+    )
+
+    assistant.memory.create_memory(
+        "goal",
+        "career",
+        "Cybersecurity"
+    )
+
+    result = handle_command("/memory list", assistant)
+
+    captured = capsys.readouterr()
+
+    assert result == "handled"
+    assert "preference" in captured.out
+    assert "language" in captured.out
+    assert "Python" in captured.out
+    assert "goal" in captured.out
+    assert "career" in captured.out
+    assert "Cybersecurity" in captured.out
+
+
+def test_memory_get_command(capsys):
+    assistant = FakeAssistant()
+
+    memory_id = assistant.memory.create_memory(
+        "project",
+        "current",
+        "AI Assistant"
+    )
+
+    result = handle_command(
+        f"/memory get {memory_id}",
+        assistant
+    )
+
+    captured = capsys.readouterr()
+
+    assert result == "handled"
+    assert "AI Assistant" in captured.out
+    assert "project" in captured.out
+
+
+def test_memory_delete_command(capsys):
+    assistant = FakeAssistant()
+
+    memory_id = assistant.memory.create_memory(
+        "preference",
+        "language",
+        "Python"
+    )
+
+    result = handle_command(
+        f"/memory delete {memory_id}",
+        assistant
+    )
+
+    captured = capsys.readouterr()
+
+    assert result == "handled"
+    assert f"Memory {memory_id} deleted." in captured.out
+    assert assistant.memory.get_memory(memory_id) is None
+
+
+def test_memory_without_subcommand(capsys):
+    assistant = FakeAssistant()
+
+    result = handle_command("/memory", assistant)
+
+    captured = capsys.readouterr()
+
+    assert result == "handled"
+    assert "Usage:" in captured.out
+
+def test_memory_add_without_arguments(capsys):
+    assistant = FakeAssistant()
+
+    result = handle_command(
+        "/memory add",
+        assistant
+    )
+
+    captured = capsys.readouterr()
+
+    assert result == "handled"
+    assert "Usage: /memory add <category> <key> <value>" in captured.out
+
+
+def test_memory_add_missing_value(capsys):
+    assistant = FakeAssistant()
+
+    result = handle_command(
+        "/memory add preference language",
+        assistant
+    )
+
+    captured = capsys.readouterr()
+
+    assert result == "handled"
+    assert "Usage: /memory add <category> <key> <value>" in captured.out
+
+
+def test_memory_get_without_id(capsys):
+    assistant = FakeAssistant()
+
+    result = handle_command(
+        "/memory get",
+        assistant
+    )
+
+    captured = capsys.readouterr()
+
+    assert result == "handled"
+    assert "Usage: /memory get <memory_id>" in captured.out
+
+
+def test_memory_get_invalid_id(capsys):
+    assistant = FakeAssistant()
+
+    result = handle_command(
+        "/memory get abc",
+        assistant
+    )
+
+    captured = capsys.readouterr()
+
+    assert result == "handled"
+    assert "Invalid memory ID" in captured.out
+
+
+def test_memory_get_nonexistent_id(capsys):
+    assistant = FakeAssistant()
+
+    result = handle_command(
+        "/memory get 9999",
+        assistant
+    )
+
+    captured = capsys.readouterr()
+
+    assert result == "handled"
+    assert "Memory 9999 not found." in captured.out
+
+
+def test_memory_delete_without_id(capsys):
+    assistant = FakeAssistant()
+
+    result = handle_command(
+        "/memory delete",
+        assistant
+    )
+
+    captured = capsys.readouterr()
+
+    assert result == "handled"
+    assert "Usage: /memory delete <memory_id>" in captured.out
+
+
+def test_memory_delete_invalid_id(capsys):
+    assistant = FakeAssistant()
+
+    result = handle_command(
+        "/memory delete abc",
+        assistant
+    )
+
+    captured = capsys.readouterr()
+
+    assert result == "handled"
+    assert "Invalid memory ID" in captured.out
+
+
+def test_memory_delete_nonexistent_id(capsys):
+    assistant = FakeAssistant()
+
+    result = handle_command(
+        "/memory delete 9999",
+        assistant
+    )
+
+    captured = capsys.readouterr()
+
+    assert result == "handled"
+    assert "Memory 9999 not found." in captured.out
+
+
+def test_unknown_memory_subcommand(capsys):
+    assistant = FakeAssistant()
+
+    result = handle_command(
+        "/memory something",
+        assistant
+    )
+
+    captured = capsys.readouterr()
+
+    assert result == "handled"
+    assert "Usage: /memory <add|list|get|delete>" in captured.out

@@ -4,7 +4,7 @@ from assistant.memory import Memory
 
 class FakeAssistant(BaseAssistant):
     def __init__(self):
-        self.memory = Memory()
+        self.memory = Memory(":memory:")
         conversation = self.memory.get_latest_conversation()
         if conversation is None:
             self.conversation_id = self.memory.create_conversation(
