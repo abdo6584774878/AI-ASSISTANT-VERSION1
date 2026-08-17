@@ -26,6 +26,16 @@ class Memory:
                         REFERENCES conversations(id)
                 )
             """)
+            self.conn.execute("""
+                CREATE TABLE IF NOT EXISTS memories (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    category TEXT NOT NULL,
+                    key TEXT NOT NULL,
+                    value TEXT NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                ) 
+            """)
 
     def create_conversation(self, title="New Conversation"):
         cursor = self.conn.execute(
@@ -124,4 +134,62 @@ class Memory:
                 "DELETE FROM messages WHERE conversation_id = ?",
                 (conversation_id,)
             )
+    
+    def create_memory(self, category, key, value):
+        cursor = self.conn.execute(
+            """
+            INSERT INTO memories
+            (category, key, value)
+            VALUES (?, ?, ?)
+            """,
+            (category, key, value)
+        )
+        
+        self.conn.commit()
+        
+        return cursor.lastrowid
+    def get_memory(self, memory_id):
+        cursor = self.conn.execute(
+        """
+        SELECT id, category, key, value, created_at, updated_at
+        FROM memories
+        WHERE id = ?
+        """,
+        (memory_id,)
+        )
+        
+        return cursor.fetchone()
+    def get_memories(self):
+        cursor = self.conn.execute(
+        """
+        SELECT id, category, key, value, created_at, updated_at
+        FROM memories
+        ORDER BY id
+        """
+        )
+        return cursor.fetchall()
+    def update_memory(self, memory_id, category, key, value):
+        with self.conn:
+            cursor = self.conn.execute(
+                """
+                UPDATE memories
+                SET category = ?,
+                    key = ?,
+                    value = ?,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+                """,
+                (category, key, value, memory_id)
+            )
+        return cursor.rowcount > 0
+    def delete_memory(self, memory_id):
+        with self.conn:
+            cursor = self.conn.execute(
+                """
+                DELETE FROM memories
+                WHERE id = ?
+                """,
+                 (memory_id,)
+        )
+        return cursor.rowcount > 0
             

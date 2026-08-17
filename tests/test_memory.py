@@ -230,3 +230,119 @@ def test_memory_persists_between_instances(tmp_path):
         ("user", "This should survive.")
     ]
 
+def test_create_memory():
+    memory = Memory(":memory:")
+
+    memory_id = memory.create_memory(
+        "preference",
+        "language",
+        "Python"
+    )
+
+    result = memory.get_memory(memory_id)
+
+    assert result is not None
+    assert result[0] == memory_id
+    assert result[1] == "preference"
+    assert result[2] == "language"
+    assert result[3] == "Python"
+    assert result[4] is not None
+    assert result[5] is not None
+
+
+def test_get_memories():
+    memory = Memory(":memory:")
+
+    memory.create_memory(
+        "preference",
+        "language",
+        "Python"
+    )
+
+    memory.create_memory(
+        "goal",
+        "career",
+        "Cybersecurity"
+    )
+
+    memories = memory.get_memories()
+
+    assert len(memories) == 2
+
+
+def test_update_memory():
+    memory = Memory(":memory:")
+
+    memory_id = memory.create_memory(
+        "preference",
+        "language",
+        "Python"
+    )
+
+    success = memory.update_memory(
+        memory_id,
+        "preference",
+        "language",
+        "Rust"
+    )
+
+    assert success is True
+
+    result = memory.get_memory(memory_id)
+
+    assert result[3] == "Rust"
+
+
+def test_delete_memory():
+    memory = Memory(":memory:")
+
+    memory_id = memory.create_memory(
+        "preference",
+        "language",
+        "Python"
+    )
+
+    success = memory.delete_memory(memory_id)
+
+    assert success is True
+    assert memory.get_memory(memory_id) is None
+
+
+def test_get_nonexistent_memory():
+    memory = Memory(":memory:")
+
+    result = memory.get_memory(9999)
+
+    assert result is None
+
+
+def test_delete_nonexistent_memory():
+    memory = Memory(":memory:")
+
+    result = memory.delete_memory(9999)
+
+    assert result is False
+
+
+def test_memories_persist_between_instances(tmp_path):
+    db_path = tmp_path / "memory.db"
+
+    memory1 = Memory(str(db_path))
+
+    memory_id = memory1.create_memory(
+        "project",
+        "current",
+        "AI Assistant"
+    )
+
+    del memory1
+
+    memory2 = Memory(str(db_path))
+
+    result = memory2.get_memory(memory_id)
+
+    assert result is not None
+    assert result[1] == "project"
+    assert result[2] == "current"
+    assert result[3] == "AI Assistant"
+
