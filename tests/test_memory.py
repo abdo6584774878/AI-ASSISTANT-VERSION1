@@ -202,4 +202,31 @@ def test_update_conversation_title_nonexistent():
     )
 
     assert memory.get_conversation(9999) is None
+def test_memory_persists_between_instances(tmp_path):
+    db_path = tmp_path / "memory.db"
+
+    memory1 = Memory(str(db_path))
+
+    conversation_id = memory1.create_conversation(
+        "Persistent Conversation"
+    )
+
+    memory1.add_message(
+        conversation_id,
+        "user",
+        "This should survive."
+    )
+
+    del memory1
+
+    memory2 = Memory(str(db_path))
+
+    conversation = memory2.get_conversation(conversation_id)
+    messages = memory2.get_messages(conversation_id)
+
+    assert conversation is not None
+    assert conversation[1] == "Persistent Conversation"
+    assert messages == [
+        ("user", "This should survive.")
+    ]
 
