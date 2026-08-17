@@ -696,3 +696,196 @@ def test_save_extracted_memories():
         stored[1][4],
         stored[1][5]
     )
+
+
+def test_send_message_saves_extracted_memories():
+    assistant = object.__new__(AIAssistant)
+
+    from assistant.memory import Memory
+    assistant.memory = Memory(":memory:")
+    assistant.conversation_id = assistant.memory.create_conversation(
+        "Test Conversation"
+    )
+
+    class FakeResponse:
+        text = "Python is a great choice."
+
+    class FakeChat:
+        def send_message(self, message):
+            return FakeResponse()
+
+    assistant.chat = FakeChat()
+
+    assistant.build_memory_context = lambda message: ""
+
+    assistant.extract_memories = lambda message: [
+        {
+            "category": "preference",
+            "key": "language",
+            "value": "Python"
+        }
+    ]
+
+    result = assistant.send_message(
+        "I prefer Python."
+    )
+
+    assert result == "Python is a great choice."
+
+    memories = assistant.memory.get_memories()
+
+    assert len(memories) == 1
+    assert memories[0][1:] == (
+        "preference",
+        "language",
+        "Python",
+        memories[0][4],
+        memories[0][5]
+    )
+
+
+def test_extract_memories_markdown_json():
+    assistant = object.__new__(AIAssistant)
+
+    class FakeResponse:
+        text = '''```json
+[
+    {
+        "category": "preference",
+        "key": "language",
+        "value": "Python"
+    }
+]
+```'''
+
+    class FakeModels:
+        def generate_content(self, **kwargs):
+            return FakeResponse()
+
+    class FakeClient:
+        models = FakeModels()
+
+    assistant.client = FakeClient()
+
+    result = assistant.extract_memories(
+        "I prefer Python."
+    )
+
+    assert result == [
+        {
+            "category": "preference",
+            "key": "language",
+            "value": "Python"
+        }
+    ]
+
+
+def test_extract_memories_with_extra_text():
+    assistant = object.__new__(AIAssistant)
+
+    class FakeResponse:
+        text = '''Here are the memories I found:
+
+[
+    {
+        "category": "preference",
+        "key": "language",
+        "value": "Python"
+    }
+]'''
+
+    class FakeModels:
+        def generate_content(self, **kwargs):
+            return FakeResponse()
+
+    class FakeClient:
+        models = FakeModels()
+
+    assistant.client = FakeClient()
+
+    result = assistant.extract_memories(
+        "I prefer Python."
+    )
+
+    assert result == [
+        {
+            "category": "preference",
+            "key": "language",
+            "value": "Python"
+        }
+    ]
+
+
+def test_send_message_saves_extracted_memories(monkeypatch):
+    assistant = object.__new__(AIAssistant)
+
+    from assistant.memory import Memory
+    assistant.memory = Memory(":memory:")
+    assistant.conversation_id = assistant.memory.create_conversation(
+        "Test Conversation"
+    )
+
+    class FakeResponse:
+        text = "You are learning Python."
+
+    class FakeChat:
+        def send_message(self, message):
+            return FakeResponse()
+
+    assistant.chat = FakeChat()
+
+    monkeypatch.setattr(
+        assistant,
+        "extract_memories",
+        lambda message: [
+            {
+                "category": "preference",
+                "key": "language",
+                "value": "Python"
+            }
+        ]
+    )
+
+    result = assistant.send_message(
+        "I prefer Python."
+    )
+
+    assert result == "You are learning Python."
+
+    memories = assistant.memory.get_memories()
+
+    assert len(memories) == 1
+    assert memories[0][1:] == (
+        "preference",
+        "language",
+        "Python",
+        memories[0][4],
+        memories[0][5]
+    )
+
+def test_save_extracted_memories_updates_existing_memory():
+    assistant = object.__new__(AIAssistant)
+
+    from assistant.memory import Memory
+    assistant.memory = Memory(":memory:")
+
+    assistant.memory.create_memory(
+        "preference",
+        "language",
+        "Python"
+    )
+
+    assistant.save_extracted_memories([
+        {
+            "category": "preference",
+            "key": "language",
+            "value": "Rust"
+        }
+    ])
+
+    memories = assistant.memory.get_memories()
+
+    assert len(memories) == 1
+    assert memories[0][1] == "preference"
+    assert memories[0][2] == "language"
+    assert memories[0][3] == "Rust"

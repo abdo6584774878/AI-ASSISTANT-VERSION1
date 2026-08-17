@@ -136,6 +136,19 @@ class Memory:
             )
     
     def create_memory(self, category, key, value):
+        existing = self.conn.execute(
+            """
+            SELECT id
+            FROM memories
+            WHERE category = ?
+            AND key = ?
+            AND value = ?
+            """,
+            (category, key, value)
+        ).fetchone()
+
+        if existing:
+            return existing[0]
         cursor = self.conn.execute(
             """
             INSERT INTO memories

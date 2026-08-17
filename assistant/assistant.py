@@ -117,10 +117,31 @@ class AIAssistant(BaseAssistant):
                 "If there are no useful memories, return [].\n\n"
                 f"User message: {message}"
                 )
-             )
+            )
+            text = response.text.strip()
+            
+            if text.startswith("```"):
+                lines = text.splitlines()
 
-            data = json.loads(response.text.strip())
+                if lines and lines[0].strip().startswith("```"):
+                    lines = lines[1:]
 
+                if lines and lines[-1].strip() == "```":
+                    lines = lines[:-1]
+
+                text = "\n".join(lines).strip()
+            
+            try:
+                data = json.loads(text)
+            except json.JSONDecodeError:
+                start = text.find("[")
+                end = text.rfind("]")
+                
+                if start == -1 or end <= start:
+                    return[]
+                
+                data = json.loads(text[start:end + 1])
+            
             if not isinstance(data, list):
                 return []
 
@@ -160,11 +181,31 @@ class AIAssistant(BaseAssistant):
     
     def save_extracted_memories(self, memories):
         for memory in memories:
-            self.memory.create_memory(
-                memory["category"],
-                memory["key"],
-                memory["value"]
-            ) 
+            existing_memories = self.memory.search_memories(
+                memory["key"]
+            )
+            matching_memory = None
+        
+            for existing in existing_memories:
+                if(
+                existing[1] == memory["category"]
+                and existing[2] == memory["key"]
+                ):
+                    matching_memory = existing
+                    break
+            if matching_memory:
+                self.memory.update_memory(
+                    matching_memory[0],
+                    memory["category"],
+                    memory["key"],
+                    memory["value"]
+                )
+            else:
+                self.memory.create_memory(
+                    memory["category"],
+                    memory["key"],
+                    memory["value"]
+                )
    
     def send_message(self, message):
         try:
@@ -185,6 +226,9 @@ class AIAssistant(BaseAssistant):
                 "assistant",
                 response.text
             )
+            extracted_memories = self.extract_memories(message)
+            self.save_extracted_memories(extracted_memories)
+            
             conversation = self.memory.get_conversation(self.conversation_id)
             if conversation and conversation[1] == "New Conversation":
                 self.auto_title_conversation(message)

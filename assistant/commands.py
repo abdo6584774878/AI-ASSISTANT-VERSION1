@@ -20,6 +20,11 @@ def handle_command(command, assistant):
         print("- /current: Show the current conversation")
         print("- /rename <new_title>: Rename the current conversation")
         print("- /delete <conversation_id>: Delete a specific conversation")
+        print("/memory add <category> <key> <value>: Add a memory")
+        print("/memory list: List all memories")
+        print("- /memory get <memory_id>: Show a specific memory")
+        print("- /memory update <id> <category> <key> <value>: Update a memory")
+        print("- /memory delete <memory_id>: Delete a memory")
         return "handled"
     
     if command_name == "/clear":
@@ -207,6 +212,7 @@ def handle_command(command, assistant):
                 print(f"Memory {memory_id} deleted.")
             else:
                 print(f"Memory {memory_id} not found.")
+            return "handled"
             
         if subcommand == "update":
             if len(memory_parts) < 2:

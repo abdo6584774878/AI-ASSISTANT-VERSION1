@@ -291,7 +291,43 @@ def test_update_memory():
     result = memory.get_memory(memory_id)
 
     assert result[3] == "Rust"
+    
 
+def test_update_memory_changes_updated_at():
+    memory = Memory(":memory:")
+
+    memory_id = memory.create_memory(
+        "preference",
+        "language",
+        "Python"
+    )
+
+    before = memory.get_memory(memory_id)
+
+    memory.update_memory(
+        memory_id,
+        "preference",
+        "language",
+        "Rust"
+    )
+
+    after = memory.get_memory(memory_id)
+
+    assert after[5] >= before[5]
+    
+
+def test_update_nonexistent_memory():
+    memory = Memory(":memory:")
+
+    success = memory.update_memory(
+        9999,
+        "preference",
+        "language",
+        "Rust"
+    )
+
+    assert success is False
+    
 
 def test_delete_memory():
     memory = Memory(":memory:")
@@ -411,4 +447,25 @@ def test_search_memories_no_results():
     results = memory.search_memories("JavaScript")
 
     assert results == []
+    
+def test_create_memory_does_not_duplicate():
+    memory = Memory(":memory:")
+
+    first_id = memory.create_memory(
+        "preference",
+        "language",
+        "Python"
+    )
+
+    second_id = memory.create_memory(
+        "preference",
+        "language",
+        "Python"
+    )
+
+    assert first_id == second_id
+
+    memories = memory.get_memories()
+
+    assert len(memories) == 1
 
