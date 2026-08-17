@@ -2,11 +2,14 @@
 
 
 def handle_command(command, assistant):
-    if command.lower() == "/exit":
+    parts = command.strip().split(maxsplit=1)
+    command_name = parts[0].lower() if parts else ""
+
+    if command_name == "/exit":
         return "exit"
     
     
-    if command.lower() == "/help":
+    if command_name == "/help":
         print("Available commands:")
         print("- /help: Show available commands")
         print("- /clear: Clear chat history")
@@ -19,7 +22,7 @@ def handle_command(command, assistant):
         print("- /delete <conversation_id>: Delete a specific conversation")
         return "handled"
     
-    if command.lower() == "/clear":
+    if command_name == "/clear":
         assistant.clear_chat_history()
         print("Chat history cleared.")
         return "handled"
@@ -35,9 +38,12 @@ def handle_command(command, assistant):
             print(f"{conversation_id}: {title}")
         return "handled"
     
-    if command.lower().startswith("/switch"):
+    if command_name == "/switch":
+        if len(parts) < 2:
+            print("Usage: /switch <conversation_id>")
+            return "handled"
         try: 
-            conversation_id = int(command.split()[1])
+            conversation_id = int(parts[1])
         except (IndexError, ValueError):
             print("Usage: /switch <conversation_id>")
             return "handled"
@@ -49,8 +55,7 @@ def handle_command(command, assistant):
            print(f"Conversation with ID {conversation_id} not found.")
         return "handled"
     
-    if command.lower().startswith("/new"):
-        parts = command.split(maxsplit=1)
+    if command_name == "/new":
         if len(parts) < 2:
             print("Usage: /new <conversation_title>")
             return "handled"
@@ -72,8 +77,7 @@ def handle_command(command, assistant):
             print(f"Created At: {created_at}")
         return "handled"
    
-    if command.lower().startswith("/rename"):
-        parts = command.split(maxsplit=1)
+    if command_name == "/rename":
         if len(parts) < 2:
             print("Usage: /rename <new_title>")
             return "handled"
@@ -82,8 +86,7 @@ def handle_command(command, assistant):
         print(f"Conversation renamed to: {title}")
         return "handled"
     
-    if command.lower().startswith("/delete"):
-        parts = command.split(maxsplit=1)
+    if command_name == "/delete":
         if len(parts) < 2:
             print("Usage: /delete <conversation_id>")
             return "handled"

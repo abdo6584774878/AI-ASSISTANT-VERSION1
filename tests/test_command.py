@@ -192,3 +192,77 @@ def test_delete_without_id(capsys):
 
     assert result == "handled"
     assert "usage" in captured.out.lower()
+
+def test_unknown_command(capsys):
+    assistant = FakeAssistant()
+
+    result = handle_command("/unknown", assistant)
+
+    captured = capsys.readouterr()
+
+    assert result is None
+    assert captured.out == ""
+
+
+def test_switch_prefix_is_not_switch_command(capsys):
+    assistant = FakeAssistant()
+
+    result = handle_command("/switches 123", assistant)
+
+    captured = capsys.readouterr()
+
+    assert result is None
+    assert captured.out == ""
+
+
+def test_new_prefix_is_not_new_command(capsys):
+    assistant = FakeAssistant()
+
+    result = handle_command("/newthing Test", assistant)
+
+    captured = capsys.readouterr()
+
+    assert result is None
+    assert captured.out == ""
+
+
+def test_rename_prefix_is_not_rename_command(capsys):
+    assistant = FakeAssistant()
+
+    result = handle_command("/renameold Title", assistant)
+
+    captured = capsys.readouterr()
+
+    assert result is None
+    assert captured.out == ""
+
+
+def test_delete_prefix_is_not_delete_command(capsys):
+    assistant = FakeAssistant()
+
+    result = handle_command("/deleteall 123", assistant)
+
+    captured = capsys.readouterr()
+
+    assert result is None
+    assert captured.out == ""
+def test_command_is_case_insensitive(capsys):
+    assistant = FakeAssistant()
+
+    result = handle_command("  /HELP  ", assistant)
+
+    captured = capsys.readouterr()
+
+    assert result == "handled"
+    assert "Available commands:" in captured.out
+
+
+def test_command_with_extra_spaces(capsys):
+    assistant = FakeAssistant()
+
+    result = handle_command("   /switch   9999   ", assistant)
+
+    captured = capsys.readouterr()
+
+    assert result == "handled"
+    assert "Conversation with ID 9999 not found." in captured.out
