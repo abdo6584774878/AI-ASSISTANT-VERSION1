@@ -52,6 +52,9 @@ class FakeAssistant(BaseAssistant):
     def get_current_conversation(self):
         return self.memory.get_conversation(self.conversation_id)
     
+    def list_conversations(self):
+        return self.memory.get_conversations()
+    
     def rename_conversation(self, title):
         self.memory.update_conversation_title(
             self.conversation_id,
@@ -60,3 +63,4 @@ class FakeAssistant(BaseAssistant):
     
     def delete_conversation(self, conversation_id):
         return self.memory.delete_conversation(conversation_id)
+    

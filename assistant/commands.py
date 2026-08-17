@@ -26,7 +26,7 @@ def handle_command(command, assistant):
     
     
     if command.lower() == "/list":
-        conversations = assistant.memory.get_conversations()
+        conversations = assistant.list_conversations()
         if not conversations:
             print("No conversations found.")
             return "handled"
@@ -78,7 +78,7 @@ def handle_command(command, assistant):
             print("Usage: /rename <new_title>")
             return "handled"
         title = parts[1].strip()
-        assistant.memory.update_conversation_title(assistant.conversation_id, title)
+        assistant.rename_conversation(title)
         print(f"Conversation renamed to: {title}")
         return "handled"
     
@@ -105,7 +105,7 @@ def handle_command(command, assistant):
         if confirmation.lower() != "y":
             print("deletion cancelled")
             return "handled"
-        success = assistant.memory.delete_conversation(conversation_id)
+        success = assistant.delete_conversation(conversation_id)
         if success:
             print(f"Conversation {conversation_id} deleted.")
         else:

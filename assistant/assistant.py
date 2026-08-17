@@ -83,8 +83,6 @@ class AIAssistant(BaseAssistant):
             title
         )
         return title
-    
-    
     def send_message(self, message):
         try: 
             response = self.chat.send_message(message)
@@ -115,6 +113,16 @@ class AIAssistant(BaseAssistant):
             self.conversation_id
         )
         self._create_chat()  # Reinitialize the chat after clearing history
+        
+    def list_conversations(self):
+        return self.memory.get_conversations()
+    def rename_conversation(self, title):
+        self.memory.update_conversation_title(
+            self.conversation_id,
+            title
+        )
+    def delete_conversation(self, conversation_id):
+        return self.memory.delete_conversation(conversation_id)
         
     
     
