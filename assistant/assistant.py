@@ -1,6 +1,7 @@
 
 import logging
 import os
+import json
 from google import genai
 from google.genai import errors
 
@@ -99,6 +100,72 @@ class AIAssistant(BaseAssistant):
 
         return "\n".join(lines)
     
+ 
+    def extract_memories(self, message):
+        try:
+            response = self.client.models.generate_content(
+                model=MODEL_NAME,
+                contents=(
+                "Extract useful long-term memories from the user's message.\n"
+                "Return a JSON array only.\n"
+                "Each memory must contain exactly these fields:\n"
+                "- category\n"
+                "- key\n"
+                "- value\n\n"
+                "Only include information that could be useful in "
+                "future conversations.\n"
+                "If there are no useful memories, return [].\n\n"
+                f"User message: {message}"
+                )
+             )
+
+            data = json.loads(response.text.strip())
+
+            if not isinstance(data, list):
+                return []
+
+            memories = []
+
+            for item in data:
+                if not isinstance(item, dict):
+                    continue
+
+                if not all(
+                    field in item
+                    for field in ("category", "key", "value")
+                ):
+                    continue
+
+                memories.append({
+                    "category": str(item["category"]).strip(),
+                    "key": str(item["key"]).strip(),
+                    "value": str(item["value"]).strip()
+                })
+
+            return memories
+
+        except (json.JSONDecodeError, TypeError, AttributeError) as error:
+            logger.error(
+                "Could not parse extracted memories: %s",
+                error
+            )
+            return []
+
+        except errors.ClientError as error:
+            logger.error(
+                "Could not extract memories: %s",
+                error
+            )
+            return []
+    
+    def save_extracted_memories(self, memories):
+        for memory in memories:
+            self.memory.create_memory(
+                memory["category"],
+                memory["key"],
+                memory["value"]
+            ) 
+   
     def send_message(self, message):
         try:
             memory_context = self.build_memory_context(message)

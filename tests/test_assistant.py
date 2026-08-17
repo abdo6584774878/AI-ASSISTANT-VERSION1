@@ -516,3 +516,183 @@ def test_send_message_uses_memory_context(monkeypatch):
     )
 
     assert result == "You are learning Python."
+
+
+def test_extract_memories(monkeypatch):
+    assistant = object.__new__(AIAssistant)
+
+    from assistant.memory import Memory
+    assistant.memory = Memory(":memory:")
+
+    class FakeResponse:
+        text = '[{"category": "preference", "key": "language", "value": "Python"}]'
+
+    class FakeModels:
+        def generate_content(self, **kwargs):
+            return FakeResponse()
+
+    class FakeClient:
+        models = FakeModels()
+
+    assistant.client = FakeClient()
+
+    result = assistant.extract_memories(
+        "I prefer Python."
+    )
+
+    assert isinstance(result, list)
+    assert result == [{
+        "category": "preference",
+        "key": "language",
+        "value": "Python"
+    }]
+
+def test_extract_memories_no_memories(monkeypatch):
+    assistant = object.__new__(AIAssistant)
+
+    from assistant.memory import Memory
+    assistant.memory = Memory(":memory:")
+
+    class FakeResponse:
+        text = "[]"
+
+    class FakeModels:
+        def generate_content(self, **kwargs):
+            return FakeResponse()
+
+    class FakeClient:
+        models = FakeModels()
+
+    assistant.client = FakeClient()
+
+    result = assistant.extract_memories(
+        "What is the weather today?"
+    )
+
+    assert result == []
+
+
+def test_extract_memories_invalid_json():
+    assistant = object.__new__(AIAssistant)
+
+    class FakeResponse:
+        text = "This is not JSON"
+
+    class FakeModels:
+        def generate_content(self, **kwargs):
+            return FakeResponse()
+
+    class FakeClient:
+        models = FakeModels()
+
+    assistant.client = FakeClient()
+
+    result = assistant.extract_memories(
+        "I prefer Python."
+    )
+
+    assert result == []
+
+
+def test_extract_memories_invalid_structure():
+    assistant = object.__new__(AIAssistant)
+
+    class FakeResponse:
+        text = '{"category": "preference", "key": "language", "value": "Python"}'
+
+    class FakeModels:
+        def generate_content(self, **kwargs):
+            return FakeResponse()
+
+    class FakeClient:
+        models = FakeModels()
+
+    assistant.client = FakeClient()
+
+    result = assistant.extract_memories(
+        "I prefer Python."
+    )
+
+    assert result == []
+
+
+def test_extract_memories_skips_invalid_entries():
+    assistant = object.__new__(AIAssistant)
+
+    class FakeResponse:
+        text = '''
+        [
+            {
+                "category": "preference",
+                "key": "language",
+                "value": "Python"
+            },
+            {
+                "category": "goal"
+            },
+            "garbage"
+        ]
+        '''
+
+    class FakeModels:
+        def generate_content(self, **kwargs):
+            return FakeResponse()
+
+    class FakeClient:
+        models = FakeModels()
+
+    assistant.client = FakeClient()
+
+    result = assistant.extract_memories(
+        "I prefer Python."
+    )
+
+    assert result == [
+        {
+            "category": "preference",
+            "key": "language",
+            "value": "Python"
+        }
+    ]
+
+
+def test_save_extracted_memories():
+    assistant = object.__new__(AIAssistant)
+
+    from assistant.memory import Memory
+    assistant.memory = Memory(":memory:")
+
+    memories = [
+        {
+            "category": "preference",
+            "key": "language",
+            "value": "Python"
+        },
+        {
+            "category": "goal",
+            "key": "career",
+            "value": "Cybersecurity"
+        }
+    ]
+
+    assistant.save_extracted_memories(memories)
+
+    stored = assistant.memory.get_memories()
+
+    assert len(stored) == 2
+
+    assert stored[0][1:] == (
+        "preference",
+        "language",
+        "Python",
+        stored[0][4],
+        stored[0][5]
+    )
+
+    assert stored[1][1:] == (
+        "goal",
+        "career",
+        "Cybersecurity",
+        stored[1][4],
+        stored[1][5]
+    )
