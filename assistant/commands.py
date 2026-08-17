@@ -207,9 +207,40 @@ def handle_command(command, assistant):
                 print(f"Memory {memory_id} deleted.")
             else:
                 print(f"Memory {memory_id} not found.")
-
+            
+        if subcommand == "update":
+            if len(memory_parts) < 2:
+                print("Usage: /memory update <id> <category> <key> <value>")
+                return "handled"
+                
+            args = memory_parts[1].split(maxsplit=3)
+                
+            if len(args) < 4:
+                print("Usage: /memory update <id> <category> <key> <value>")
+                return "handled"
+                
+            try:
+                memory_id = int(args[0])
+            except ValueError:
+                print("Invalid memory ID. It should be an integer.")
+                return "handled"
+                
+            category, key, value = args[1:]
+                
+            success = assistant.memory.update_memory(
+                memory_id,
+                category,
+                key,
+                value
+            )
+            if success:
+                print(f"Memory {memory_id} updated.")
+            else:
+                print(f"Memory {memory_id} not found.")
             return "handled"
+                
+           
 
-        print("Usage: /memory <add|list|get|delete> ...")
+        print("Usage: /memory <add|list|get|update|delete>")
         return "handled"
     return None

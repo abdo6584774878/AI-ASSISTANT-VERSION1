@@ -481,6 +481,74 @@ def test_memory_delete_nonexistent_id(capsys):
     assert "Memory 9999 not found." in captured.out
 
 
+def test_memory_update_command(capsys):
+    assistant = FakeAssistant()
+
+    memory_id = assistant.memory.create_memory(
+        "preference",
+        "language",
+        "Python"
+    )
+
+    result = handle_command(
+        f"/memory update {memory_id} preference language Java",
+        assistant
+    )
+
+    captured = capsys.readouterr()
+
+    assert result == "handled"
+    assert f"Memory {memory_id} updated." in captured.out
+
+    memory = assistant.memory.get_memory(memory_id)
+
+    assert memory[1] == "preference"
+    assert memory[2] == "language"
+    assert memory[3] == "Java"
+
+
+def test_memory_update_without_arguments(capsys):
+    assistant = FakeAssistant()
+
+    result = handle_command(
+        "/memory update",
+        assistant
+    )
+
+    captured = capsys.readouterr()
+
+    assert result == "handled"
+    assert "Usage: /memory update <id> <category> <key> <value>" in captured.out
+
+
+def test_memory_update_invalid_id(capsys):
+    assistant = FakeAssistant()
+
+    result = handle_command(
+        "/memory update abc preference language Java",
+        assistant
+    )
+
+    captured = capsys.readouterr()
+
+    assert result == "handled"
+    assert "Invalid memory ID" in captured.out
+
+
+def test_memory_update_nonexistent_id(capsys):
+    assistant = FakeAssistant()
+
+    result = handle_command(
+        "/memory update 9999 preference language Java",
+        assistant
+    )
+
+    captured = capsys.readouterr()
+
+    assert result == "handled"
+    assert "Memory 9999 not found." in captured.out
+    
+
 def test_unknown_memory_subcommand(capsys):
     assistant = FakeAssistant()
 
@@ -492,4 +560,4 @@ def test_unknown_memory_subcommand(capsys):
     captured = capsys.readouterr()
 
     assert result == "handled"
-    assert "Usage: /memory <add|list|get|delete>" in captured.out
+    assert "Usage: /memory <add|list|get|update|delete>" in captured.out
