@@ -28,7 +28,7 @@ def handle_command(command, assistant):
         return "handled"
     
     
-    if command.lower() == "/list":
+    if command_name == "/list":
         conversations = assistant.list_conversations()
         if not conversations:
             print("No conversations found.")
@@ -44,7 +44,7 @@ def handle_command(command, assistant):
             return "handled"
         try: 
             conversation_id = int(parts[1])
-        except (IndexError, ValueError):
+        except ValueError:
             print("Usage: /switch <conversation_id>")
             return "handled"
         success, _ = assistant.switch_conversation(conversation_id)
@@ -64,7 +64,7 @@ def handle_command(command, assistant):
         print(f"Conversation created with ID: {conversation_id}")
         return "handled"
     
-    if command.lower() == "/current":
+    if command_name == "/current":
         conversation = assistant.get_current_conversation()
 
         if conversation is None:
