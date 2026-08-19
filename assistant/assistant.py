@@ -240,6 +240,60 @@ class AIAssistant(BaseAssistant):
                 return "Rate limit exceeded. Please try again later."
 
             return "An error occurred while processing your message."
+    
+    def stream_message(self, message):
+        try:
+            memory_context = self.build_memory_context(message)
+            
+            if memory_context:
+                prompt = f"{memory_context}\n\nUser message : {message}"
+            else:
+                prompt = message
+            
+            self.memory.add_message(
+                self.conversation_id,
+                "user",
+                message
+            )
+            
+            response_parts = []
+            
+            for chunk in self.chat.send_message_stream(prompt):
+                text = chunk.text or ""
+                
+                if text:
+                    response_parts.append(text)
+                    yield text
+                    
+            response_text = "".join(response_parts)
+            
+            self.memory.add_message(
+                self.conversation_id,
+                "assistant",
+                response_text
+            )
+            
+            extracted_memories = self.extract_memories(message)
+            self.save_extracted_memories(extracted_memories)
+            
+            conversation = self.memory.get_conversation(
+                self.conversation_id
+            )
+            
+            if conversation and conversation[1] == "New Conversation":
+                self.auto_title_conversation(message)
+        
+        except errors.ClientError as error:
+            logger.error(
+                "An error occured while processing your message: %s",
+                error
+            )
+            
+            if error.code == 429:
+                yield "Rate lmit excceeded. Please try again later."
+            else:
+                yield "An error occurred while processing your message."
+    
     def clear_chat_history(self):
         self.memory.clear_memory(
             self.conversation_id

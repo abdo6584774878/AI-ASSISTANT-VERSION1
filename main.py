@@ -23,8 +23,13 @@ def main():
             print("Unknown command. Type /help for a list of commands.")
             continue
 
-    response = assistant.send_message(user_input)
-    print(f"Assistant: {response}")
+    #response = assistant.send_message(user_input)
+    print("Assistant: ", end="", flush=True)
+    
+    for chunk in assistant.stream_message(user_input):
+        print(chunk, end="", flush=True)
+    
+    print()
 
 
 if __name__ == "__main__":
