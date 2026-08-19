@@ -11,6 +11,8 @@ from assistant.config import MODEL_NAME, SYSTEM_INSTRUCTION
 from assistant.memory import Memory
 from assistant.history import memory_to_gemini_history
 
+from assistant.tools.definitions import calculator_tool
+
 logger = logging.getLogger(__name__)
 
 class AIAssistant(BaseAssistant):
@@ -36,7 +38,8 @@ class AIAssistant(BaseAssistant):
         self.chat = self.client.chats.create(
             model=MODEL_NAME,
             config=genai.types.GenerateContentConfig(
-                system_instruction=SYSTEM_INSTRUCTION
+                system_instruction=SYSTEM_INSTRUCTION,
+                tools=[calculator_tool],
             ),
             history=history
         )
@@ -215,6 +218,7 @@ class AIAssistant(BaseAssistant):
             else:
                 prompt=message
             response = self.chat.send_message(prompt)
+            
             self.memory.add_message(
                 self.conversation_id,
                 "user",
