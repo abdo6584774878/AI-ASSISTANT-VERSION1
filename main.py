@@ -24,8 +24,7 @@ def main():
             continue
 
     #response = assistant.send_message(user_input)
-    print("Assistant: ", end="", flush=True)
-    
+
     for chunk in assistant.stream_message(user_input):
         print(chunk, end="", flush=True)
     

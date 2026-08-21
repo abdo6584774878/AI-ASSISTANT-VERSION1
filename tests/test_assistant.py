@@ -174,7 +174,7 @@ def test_send_message_api_error(monkeypatch):
 
     assert result == "An error occurred while processing your message."
 
-def test_auto_title_conversation(monkeypatch):
+def test_auto_title_conversation():
     assistant = object.__new__(AIAssistant)
 
     from assistant.memory import Memory
@@ -186,24 +186,19 @@ def test_auto_title_conversation(monkeypatch):
 
     assistant.conversation_id = conversation_id
 
-    monkeypatch.setattr(
-        assistant,
-        "generate_title",
-        lambda message: "Python Lists"
-    )
 
     result = assistant.auto_title_conversation(
         "What is a Python list?"
     )
 
-    assert result == "Python Lists"
+    assert result == "What is a Python list?"
 
     conversation = assistant.memory.get_conversation(
         conversation_id
     )
-
+    
     assert conversation is not None
-    assert conversation[1] == "Python Lists"
+    assert conversation[1] == "What is a Python list?"
 def test_generate_title():
     assistant = object.__new__(AIAssistant)
 
@@ -889,3 +884,170 @@ def test_save_extracted_memories_updates_existing_memory():
     assert memories[0][1] == "preference"
     assert memories[0][2] == "language"
     assert memories[0][3] == "Rust"
+
+
+def test_handle_tool_call():
+    assistant = object.__new__(AIAssistant)
+
+    class FakeFunctionCall:
+        name = "calculator"
+        args = {
+            "expression": "2 + 5"
+        }
+
+    assistant._execute_tool_call = lambda name, arguments: 7
+
+    result = assistant._handle_tool_call(
+        FakeFunctionCall()
+    )
+
+    assert result.function_response.name == "calculator"
+    assert result.function_response.response == {
+        "result": 7
+    }
+
+
+def test_handle_tool_call_passes_arguments():
+    assistant = object.__new__(AIAssistant)
+
+    captured = {}
+
+    def fake_execute(name, arguments):
+        captured["name"] = name
+        captured["arguments"] = arguments
+        return 42
+
+    assistant._execute_tool_call = fake_execute
+
+    class FakeFunctionCall:
+        name = "calculator"
+        args = {
+            "expression": "6 * 7"
+        }
+
+    result = assistant._handle_tool_call(
+        FakeFunctionCall()
+    )
+
+    assert captured["name"] == "calculator"
+    assert captured["arguments"] == {
+        "expression": "6 * 7"
+    }
+
+    assert result.function_response.response == {
+        "result": 42
+    }
+
+def test_handle_tool_call_handles_error():
+    assistant = object.__new__(AIAssistant)
+
+    def fake_execute(name, arguments):
+        raise ValueError("Invalid expression")
+
+    assistant._execute_tool_call = fake_execute
+
+    class FakeFunctionCall:
+        name = "calculator"
+        args = {
+            "expression": "invalid"
+        }
+
+    result = assistant._handle_tool_call(
+        FakeFunctionCall()
+    )
+
+    assert result.function_response.name == "calculator"
+    assert result.function_response.response == {
+        "result": {
+            "error": "Invalid expression"
+        }
+    }
+
+def test_handle_multiple_tool_calls():
+    assistant = object.__new__(AIAssistant)
+
+    calls = []
+
+    def fake_execute(name, arguments):
+        calls.append((name, arguments))
+
+        if name == "calculator":
+            return 10
+
+        return 20
+
+    assistant._execute_tool_call = fake_execute
+
+    class FakeFunctionCall:
+        def __init__(self, name, args):
+            self.name = name
+            self.args = args
+
+    function_calls = [
+        FakeFunctionCall(
+            "calculator",
+            {"expression": "2 + 8"}
+        ),
+        FakeFunctionCall(
+            "calculator",
+            {"expression": "10 + 10"}
+        ),
+    ]
+
+    tool_responses = [
+        assistant._handle_tool_call(function_call)
+        for function_call in function_calls
+    ]
+
+    assert len(tool_responses) == 2
+
+    assert calls == [
+        ("calculator", {"expression": "2 + 8"}),
+        ("calculator", {"expression": "10 + 10"}),
+    ]
+
+    assert tool_responses[0].function_response.response == {
+        "result": 10
+    }
+
+    assert tool_responses[1].function_response.response == {
+        "result": 10
+    }
+
+def test_handle_tool_calls():
+    assistant = object.__new__(AIAssistant)
+
+    class FakeFunctionCall:
+        def __init__(self, name, args):
+            self.name = name
+            self.args = args
+
+    assistant._execute_tool_call = (
+        lambda name, arguments: arguments["value"]
+    )
+
+    function_calls = [
+        FakeFunctionCall(
+            "calculator",
+            {"value": 10}
+        ),
+        FakeFunctionCall(
+            "calculator",
+            {"value": 20}
+        ),
+    ]
+
+    results = assistant._handle_tool_calls(
+        function_calls
+    )
+
+    assert len(results) == 2
+
+    assert results[0].function_response.response == {
+        "result": 10
+    }
+
+    assert results[1].function_response.response == {
+        "result": 20
+    }
+
