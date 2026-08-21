@@ -1051,3 +1051,114 @@ def test_handle_tool_calls():
         "result": 20
     }
 
+
+def test_stream_message_handles_tool_call():
+    assistant = object.__new__(AIAssistant)
+
+    class FakeMemory:
+        def search_memories(self, message):
+            return []
+
+        def add_message(self, *args):
+            pass
+
+        def get_conversation(self, conversation_id):
+            return None
+
+    assistant.memory = FakeMemory()
+    assistant.conversation_id = 1
+
+    class FakeFunctionCall:
+        name = "calculator"
+        args = {"expression": "2 + 5"}
+
+    class FakePart:
+        function_call = FakeFunctionCall()
+        text = None
+
+    class FakeContent:
+        parts = [FakePart()]
+
+    class FakeCandidate:
+        content = FakeContent()
+
+    class FakeChunk:
+        candidates = [FakeCandidate()]
+
+    class FakeToolChunk:
+        text = "The answer is 7."
+
+    class FakeChat:
+        def send_message_stream(self, content):
+            if isinstance(content, str):
+                yield FakeChunk()
+            else:
+                yield FakeToolChunk()
+
+    assistant.chat = FakeChat()
+    assistant._handle_tool_calls = lambda calls: ["fake tool response"]
+
+    results = list(assistant.stream_message("2 + 5"))
+
+    assert "".join(results) == "The answer is 7."
+
+
+def test_stream_message_handles_web_search():
+    assistant = object.__new__(AIAssistant)
+
+    class FakeMemory:
+        def search_memories(self, message):
+            return []
+
+        def add_message(self, *args):
+            pass
+
+        def get_conversation(self, conversation_id):
+            return None
+
+    assistant.memory = FakeMemory()
+    assistant.conversation_id = 1
+
+    class FakeFunctionCall:
+        name = "web_search"
+        args = {"query": "latest AI news"}
+
+    class FakePart:
+        function_call = FakeFunctionCall()
+        text = None
+
+    class FakeContent:
+        parts = [FakePart()]
+
+    class FakeCandidate:
+        content = FakeContent()
+
+    class FakeChunk:
+        candidates = [FakeCandidate()]
+
+    class FakeToolChunk:
+        text = "Here are the latest AI news results."
+
+    class FakeChat:
+        def send_message_stream(self, content):
+            if isinstance(content, str):
+                yield FakeChunk()
+            else:
+                yield FakeToolChunk()
+
+    assistant.chat = FakeChat()
+
+    captured = {}
+
+    def fake_handle_tool_calls(function_calls):
+        captured["calls"] = function_calls
+        return ["fake web search response"]
+
+    assistant._handle_tool_calls = fake_handle_tool_calls
+
+    results = list(assistant.stream_message("What are the latest AI news?"))
+
+    assert captured["calls"][0].name == "web_search"
+    assert captured["calls"][0].args == {"query": "latest AI news"}
+
+    assert "".join(results) == "Here are the latest AI news results."

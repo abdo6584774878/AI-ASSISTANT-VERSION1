@@ -8,6 +8,7 @@ dependencies = [
     "google-genai>=2.18.1",
     "ipykernel>=7.3.0",
     "python-dotenv>=1.2.2",
+    "tavily-python>=0.7.27",
 ]
 
 [dependency-groups]
