@@ -31,6 +31,8 @@ web_search_declaration = types.FunctionDeclaration(
         "Search the internet for current or up-to-date information. "
         "Use this when the user asks about recent events, current facts, "
         "or information that may have changed."
+        "Use the returned titles, sources, URLs, and content to answer "
+        "the user's question accurately."
     ),
     parameters={
         "type": "OBJECT",

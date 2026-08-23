@@ -40,6 +40,7 @@ def test_web_search_returns_clean_results(monkeypatch):
                     {
                         "title": "Python",
                         "url": "https://python.org",
+                        "source": "python.org",
                         "content": "Python is a programming language.",
                     }
                 ]
@@ -56,6 +57,71 @@ def test_web_search_returns_clean_results(monkeypatch):
         {
             "title": "Python",
             "url": "https://python.org",
+            "source": "python.org",
+            "content": "Python is a programming language.",
+        }
+    ]
+
+
+def test_web_search_truncates_content(monkeypatch):
+    monkeypatch.setenv("TAVILY_API_KEY", "test-key")
+
+    class FakeClient:
+        def __init__(self, api_key):
+            assert api_key == "test-key"
+
+        def search(self, query, search_depth, max_results):
+            return {
+                "results": [
+                    {
+                        "title": "Python",
+                        "url": "https://python.org",
+                        "content": "A" * 5000,
+                    }
+                ]
+            }
+
+    monkeypatch.setattr(
+        "assistant.tools.web.TavilyClient",
+        FakeClient,
+    )
+
+    result = web_search("Python")
+
+    assert len(result) == 1
+    assert len(result[0]["content"]) == 2000
+
+
+def test_web_search_returns_source(monkeypatch):
+    monkeypatch.setenv("TAVILY_API_KEY", "test-key")
+
+    class FakeClient:
+        def __init__(self, api_key):
+            assert api_key == "test-key"
+
+        def search(self, query, search_depth, max_results):
+            return {
+                "results": [
+                    {
+                        "title": "Python",
+                        "url": "https://python.org/about/",
+                        "content": "Python is a programming language.",
+                    }
+                ]
+            }
+
+    monkeypatch.setattr(
+        "assistant.tools.web.TavilyClient",
+        FakeClient,
+    )
+
+    result = web_search("Python")
+
+    assert result == [
+        {
+            "title": "Python",
+            "url": "https://python.org/about/",
+            "source": "python.org",
             "content": "Python is a programming language.",
         }
     ]

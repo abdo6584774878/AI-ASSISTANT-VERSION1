@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="description" content="Create your AI Assistant account.">
+
+    <title>Create account — AI Assistant</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/auth.css">
+</head>
+
+<body>
+
+    <div class="background-glow"></div>
+
+    <main class="auth-page">
+
+        <!-- BACK TO HOME -->
+
+        <a href="index.html" class="auth-back">
+            <span>←</span>
+            Back to home
+        </a>
+
+
+        <!-- SIGNUP CARD -->
+
+        <section class="auth-card signup-card">
+
+            <!-- LOGO -->
+
+            <div class="auth-logo">
+
+                <span class="logo-mark">
+                    A
+                </span>
+
+                <span>
+                    AI Assistant
+                </span>
+
+            </div>
+
+
+            <!-- HEADING -->
+
+            <div class="auth-heading">
+
+                <span class="section-eyebrow">
+                    GET STARTED
+                </span>
+
+                <h1>
+                    Create your
+                    <span>account.</span>
+                </h1>
+
+                <p>
+                    Build your personal AI workspace and
+                    make your assistant truly yours.
+                </p>
+
+            </div>
+
+
+            <!-- GOOGLE SIGN UP -->
+            
+            <div id="googleLogin"></div>
+
+
+            <!-- DIVIDER -->
+
+            <div class="auth-divider">
+                <span>or</span>
+            </div>
+
+
+            <!-- SIGNUP FORM -->
+
+            <form class="auth-form" id="signupForm">
+
+                <!-- NAME -->
+
+                <div class="form-group">
+
+                    <label for="name">
+                        Full name
+                    </label>
+
+                    <input type="text" id="name" name="name" placeholder="Your name" autocomplete="name" required>
+
+                </div>
+
+
+                <!-- EMAIL -->
+
+                <div class="form-group">
+
+                    <label for="email">
+                        Email
+                    </label>
+
+                    <input type="email" id="email" name="email" placeholder="you@example.com" autocomplete="email"
+                        required>
+
+                </div>
+
+
+                <!-- PASSWORD -->
+
+                <div class="form-group">
+
+                    <label for="password">
+                        Password
+                    </label>
+
+                    <input type="password" id="password" name="password" placeholder="Create a password"
+                        autocomplete="new-password" minlength="8" required>
+
+                    <span class="input-hint">
+                        Use at least 8 characters.
+                    </span>
+
+                </div>
+
+
+                <!-- CONFIRM PASSWORD -->
+
+                <div class="form-group">
+
+                    <label for="confirmPassword">
+                        Confirm password
+                    </label>
+
+                    <input type="password" id="confirmPassword" name="confirmPassword"
+                        placeholder="Repeat your password" autocomplete="new-password" minlength="8" required>
+
+                    <span id="password-error" class="field-error"></span>
+
+                </div>
+
+
+                <!-- TERMS -->
+                    <label class="agree-checkbox">
+                        <input type="checkbox" id="terms" name="terms" required>
+                        <span class="custom-checkbox"></span>
+                        <span class="agree-text">
+                            I agree to the <a href="#">Terms of Service</a> and
+                            <a href="#">Privacy Policy</a>
+                        </span>
+                    </label>
+
+                <!-- SUBMIT -->
+
+                <button type="submit" class="auth-submit">
+
+                    <span>
+                        Create account
+                    </span>
+
+                    <span class="auth-arrow">
+                        →
+                    </span>
+
+                </button>
+
+            </form>
+
+
+            <!-- LOGIN -->
+
+            <p class="auth-switch">
+
+                Already have an account?
+
+                <a href="login.html">
+                    Sign in
+                </a>
+
+            </p>
+
+        </section>
+
+
+        <!-- FOOTER -->
+
+        <p class="auth-footer">
+
+            © 2026 AI Assistant
+
+            <span>·</span>
+
+            Intelligence, your way.
+
+        </p>
+
+    </main>
+
+
+    <!-- AUTH SCRIPT -->
+    <script src="https://accounts.google.com/gsi/client" async></script>
+    <script src="js/auth.js"></script>
+
+</body>
+
+</html>

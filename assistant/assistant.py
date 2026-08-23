@@ -284,36 +284,51 @@ class AIAssistant(BaseAssistant):
             else:
                 prompt = message
 
-            self.memory.add_message(self.conversation_id, "user", message)
+            self.memory.add_message(
+                self.conversation_id,
+                "user",
+                message,
+            )
 
             response_parts = []
 
-            for chunk in self.chat.send_message_stream(prompt):
-                parts = chunk.candidates[0].content.parts
+            # First Gemini response
+            response = self.chat.send_message(prompt)
 
-                function_calls = [
-                    part.function_call for part in parts if part.function_call
-                ]
+            parts = response.candidates[0].content.parts
 
-                text_parts = [part.text for part in parts if part.text]
+            function_calls = [
+                part.function_call for part in parts if part.function_call
+            ]
 
-                for text in text_parts:
+            # If Gemini answered without using a tool
+            if not function_calls:
+                text = response.text or ""
+
+                if text:
                     response_parts.append(text)
                     yield text
 
-                if function_calls:
-                    tool_responses = self._handle_tool_calls(function_calls)
+            # Gemini requested a tool
+            else:
+                tool_responses = self._handle_tool_calls(function_calls)
 
-                    for tool_chunk in self.chat.send_message_stream(tool_responses):
-                        text = tool_chunk.text or ""
+                # Send tool results back to Gemini
+                final_response = self.chat.send_message(tool_responses)
 
-                        if text:
-                            response_parts.append(text)
-                            yield text
+                text = final_response.text or ""
+
+                if text:
+                    response_parts.append(text)
+                    yield text
 
             response_text = "".join(response_parts)
 
-            self.memory.add_message(self.conversation_id, "assistant", response_text)
+            self.memory.add_message(
+                self.conversation_id,
+                "assistant",
+                response_text,
+            )
 
             if self.should_extract_memories(message):
                 extracted_memories = self.extract_memories(message)
@@ -325,7 +340,10 @@ class AIAssistant(BaseAssistant):
                 self.auto_title_conversation(message)
 
         except errors.ClientError as error:
-            logger.error("AN ERROR OCCURED WHILE PROCESSING YOUR MESSAGE : %s", error)
+            logger.error(
+                "AN ERROR OCCURED WHILE PROCESSING YOUR MESSAGE : %s",
+                error,
+            )
 
             if error.code == 429:
                 yield "Rate limit exceeded. Please try again later."

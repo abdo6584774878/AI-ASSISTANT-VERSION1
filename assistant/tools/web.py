@@ -1,9 +1,27 @@
 import os
+import re
+
+from urllib.parse import urlparse
 
 from dotenv import load_dotenv
 from tavily import TavilyClient
 
 load_dotenv()
+
+
+def _clean_url(url):
+    if not url:
+        return ""
+
+    markdown_match = re.match(
+        r"\[([^\]]+)\]\(([^)]+)\)",
+        url,
+    )
+
+    if markdown_match:
+        return markdown_match.group(2)
+
+    return url
 
 
 def web_search(query):
@@ -23,11 +41,23 @@ def web_search(query):
         max_results=5,
     )
 
-    return [
-        {
-            "title": result.get("title"),
-            "url": result.get("url"),
-            "content": result.get("content"),
-        }
-        for result in response.get("results", [])
-    ]
+    cleaned_results = []
+
+    for result in response.get("results", []):
+        url = _clean_url(result.get("url", ""))
+
+        content = result.get("content", "")
+
+        if content:
+            content = content[:2000]
+
+        cleaned_results.append(
+            {
+                "title": result.get("title"),
+                "url": url,
+                "source": urlparse(url).netloc,
+                "content": content,
+            }
+        )
+
+    return cleaned_results

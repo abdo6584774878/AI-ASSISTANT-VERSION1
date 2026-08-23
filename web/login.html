@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="description" content="Sign in to your AI Assistant account.">
+
+    <title>Sign in — AI Assistant</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/auth.css">
+</head>
+
+<body>
+
+    <div class="background-glow"></div>
+
+    <main class="auth-page">
+
+        <!-- BACK TO HOME -->
+
+        <a href="index.html" class="auth-back">
+            <span>←</span>
+            Back to home
+        </a>
+
+
+        <!-- LOGIN CARD -->
+
+        <section class="auth-card login-card">
+
+            <!-- LOGO -->
+
+            <div class="auth-logo">
+
+                <span class="logo-mark">
+                    A
+                </span>
+
+                <span>
+                    AI Assistant
+                </span>
+
+            </div>
+
+
+            <!-- HEADING -->
+
+            <div class="auth-heading">
+
+                <span class="section-eyebrow">
+                    WELCOME BACK
+                </span>
+
+                <h1>
+                    Welcome
+                    <span>back.</span>
+                </h1>
+
+                <p>
+                    Sign in to continue working with
+                    your personal AI assistant.
+                </p>
+
+            </div>
+
+
+            <!-- GOOGLE LOGIN -->
+
+            <div id="googleLogin"></div>
+
+            <!-- DIVIDER -->
+
+            <div class="auth-divider">
+                <span>or</span>
+            </div>
+
+
+            <!-- LOGIN FORM -->
+
+            <form class="auth-form" id="loginForm">
+
+                <!-- EMAIL -->
+
+                <div class="form-group">
+
+                    <label for="email">
+                        Email
+                    </label>
+
+                    <input type="email" id="email" name="email" placeholder="you@example.com" autocomplete="email"
+                        required>
+
+                </div>
+
+
+                <!-- PASSWORD -->
+
+                <div class="form-group">
+
+                    <div class="password-label-row">
+
+                        <label for="password">
+                            Password
+                        </label>
+
+                        <a href="forgot-password.html" class="forgot-password">
+                            Forgot password?
+                        </a>
+
+                    </div>
+
+                    <input type="password" id="password" name="password" placeholder="Your password"
+                        autocomplete="current-password" required>
+
+                </div>
+
+
+                <!-- REMEMBER ME -->
+
+                <label class="remember-me">
+                    <input type="checkbox" id="remember" name="remember">
+                    <span class="custom-checkbox"></span>
+                    <span>Remember me</span>
+                </label>
+
+
+                <!-- SUBMIT -->
+
+                <button type="submit" class="auth-submit">
+
+                    <span>
+                        Sign in
+                    </span>
+
+                    <span class="auth-arrow">
+                        →
+                    </span>
+
+                </button>
+
+            </form>
+
+
+            <!-- SIGNUP LINK -->
+
+            <p class="auth-switch">
+
+                Don't have an account?
+
+                <a href="signup.html">
+                    Sign up
+                </a>
+
+            </p>
+
+        </section>
+
+
+        <!-- FOOTER -->
+
+        <p class="auth-footer">
+
+            © 2026 AI Assistant
+
+            <span>·</span>
+
+            Intelligence, your way.
+
+        </p>
+
+    </main>
+
+
+    <!-- AUTH SCRIPT -->
+    <script src="https://accounts.google.com/gsi/client" async></script>
+    <script src="js/auth.js"></script>
+
+</body>
+
+</html>

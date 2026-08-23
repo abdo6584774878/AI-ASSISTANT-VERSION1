@@ -1082,25 +1082,26 @@ def test_stream_message_handles_tool_call():
     class FakeCandidate:
         content = FakeContent()
 
-    class FakeChunk:
+    class FakeResponse:
         candidates = [FakeCandidate()]
+        text = None
 
-    class FakeToolChunk:
+    class FakeFinalResponse:
         text = "The answer is 7."
 
     class FakeChat:
-        def send_message_stream(self, content):
+        def send_message(self, content):
             if isinstance(content, str):
-                yield FakeChunk()
-            else:
-                yield FakeToolChunk()
+                return FakeResponse()
+
+            return FakeFinalResponse()
 
     assistant.chat = FakeChat()
     assistant._handle_tool_calls = lambda calls: ["fake tool response"]
 
     results = list(assistant.stream_message("2 + 5"))
 
-    assert "".join(results) == "The answer is 7."
+    assert results == ["The answer is 7."]
 
 
 def test_stream_message_handles_web_search():
@@ -1133,18 +1134,19 @@ def test_stream_message_handles_web_search():
     class FakeCandidate:
         content = FakeContent()
 
-    class FakeChunk:
+    class FakeResponse:
         candidates = [FakeCandidate()]
+        text = None
 
-    class FakeToolChunk:
+    class FakeFinalResponse:
         text = "Here are the latest AI news results."
 
     class FakeChat:
-        def send_message_stream(self, content):
+        def send_message(self, content):
             if isinstance(content, str):
-                yield FakeChunk()
-            else:
-                yield FakeToolChunk()
+                return FakeResponse()
+
+            return FakeFinalResponse()
 
     assistant.chat = FakeChat()
 
@@ -1158,7 +1160,8 @@ def test_stream_message_handles_web_search():
 
     results = list(assistant.stream_message("What are the latest AI news?"))
 
+    assert results == ["Here are the latest AI news results."]
+
+    assert len(captured["calls"]) == 1
     assert captured["calls"][0].name == "web_search"
     assert captured["calls"][0].args == {"query": "latest AI news"}
-
-    assert "".join(results) == "Here are the latest AI news results."
