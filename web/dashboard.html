@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>AI Assistant — Dashboard</title>
+
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+
+<body data-page="dashboard">
+
+    <div class="app-shell">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+
+            <div class="sidebar-top">
+
+                <a href="/" class="brand">
+                    <span class="brand-mark">AI</span>
+                    <span class="brand-name">AI ASSISTANT</span>
+                </a>
+
+               
+                <!-- CHATBOT NAVIGATION -->
+                <nav class="workspace-nav" id="chatbot-nav">
+
+                    <div class="nav-label">CHATBOT</div>
+
+                    <a href="#" class="nav-item active">
+                        <span>＋</span>
+                        <span>New Chat</span>
+                    </a>
+
+                    <a href="#" class="nav-item">
+                        <span>◷</span>
+                        <span>Conversations</span>
+                    </a>
+
+                    <div class="nav-divider"></div>
+
+                    <a href="#" class="nav-item">
+                        <span>⚙</span>
+                        <span>Personalization</span>
+                    </a>
+
+                </nav>
+
+
+                <!-- SECURITY NAVIGATION -->
+                <nav class="workspace-nav hidden" id="security-nav">
+
+                    <div class="nav-label">SECURITY</div>
+
+                    <a href="#" class="nav-item active">
+                        <span>⌂</span>
+                        <span>Overview</span>
+                    </a>
+
+                    <div class="nav-label nav-label-spaced">ANALYZE</div>
+
+                    <a href="#" class="nav-item">
+                        <span>＋</span>
+                        <span>New Analysis</span>
+                    </a>
+
+                    <a href="#" class="nav-item">
+                        <span>◉</span>
+                        <span>Agents</span>
+                    </a>
+
+                    <div class="nav-label nav-label-spaced">SECURITY</div>
+
+                    <a href="#" class="nav-item">
+                        <span>!</span>
+                        <span>Findings</span>
+                    </a>
+
+                    <a href="#" class="nav-item">
+                        <span>◇</span>
+                        <span>Policies</span>
+                    </a>
+
+                    <a href="#" class="nav-item">
+                        <span>⚡</span>
+                        <span>Generator</span>
+                    </a>
+
+                    <div class="nav-label nav-label-spaced">OUTPUT</div>
+
+                    <a href="#" class="nav-item">
+                        <span>▤</span>
+                        <span>Reports</span>
+                    </a>
+
+                    <a href="#" class="nav-item">
+                        <span>◷</span>
+                        <span>History</span>
+                    </a>
+
+                </nav>
+
+            </div>
+
+
+            <!-- USER -->
+            <div class="sidebar-bottom">
+            
+                <div class="user-account">
+            
+                    <!-- USER BUTTON -->
+            
+                    <button class="user-menu" type="button" aria-expanded="false" aria-haspopup="true">
+            
+                        <span class="user-avatar">A</span>
+            
+                        <span class="user-info">
+                            <strong id="user-name">User</strong>
+                            <small id="user-email">Loading...</small>
+                        </span>
+            
+                        <span class="user-more">•••</span>
+            
+                    </button>
+            
+            
+                    <!-- ACCOUNT DROPDOWN -->
+            
+                    <div class="user-dropdown" id="user-dropdown" hidden>
+            
+                        <button type="button" class="user-dropdown-item">
+                            <span class="dropdown-icon">👤</span>
+                            <span>Account</span>
+                        </button>
+            
+                        <button type="button" class="user-dropdown-item">
+                            <span class="dropdown-icon">⚙</span>
+                            <span>Settings</span>
+                        </button>
+            
+                        <div class="dropdown-divider"></div>
+            
+                        <button type="button" class="user-dropdown-item logout-button" id="logout-button">
+                            <span class="dropdown-icon">↪</span>
+                            <span>Log out</span>
+                        </button>
+            
+                    </div>
+            
+                </div>
+            
+            </div>
+
+        </aside>
+
+
+        <!-- MAIN -->
+        <main class="main">
+
+            <!-- TOPBAR -->
+            <header class="topbar">
+            
+                <div class="topbar-left">
+            
+                    <div class="breadcrumb">
+                        <span>AI ASSISTANT</span>
+                        <span class="breadcrumb-separator">/</span>
+                        <strong id="workspace-title">Chatbot</strong>
+                    </div>
+            
+                    <!-- PRODUCT SWITCH -->
+                    <div class="product-switch" role="tablist">
+            
+                        <button class="product-switch-option active" data-workspace="chatbot" role="tab" aria-selected="true">
+                            <span class="product-switch-icon">✦</span>
+                            <span>Chatbot</span>
+                        </button>
+            
+                        <button class="product-switch-option" data-workspace="security" role="tab" aria-selected="false">
+                            <span class="product-switch-icon">◈</span>
+                            <span>Security Analyzer</span>
+                        </button>
+            
+                    </div>
+            
+                </div>
+            
+            
+                <div class="topbar-actions">
+            
+                    <div class="system-status">
+                        <span class="status-dot"></span>
+                        All systems operational
+                    </div>
+            
+                    <button class="icon-button" title="Notifications">
+                        ♢
+                    </button>
+            
+                    <button class="topbar-avatar" title="Account">
+                        A
+                    </button>
+            
+                </div>
+            
+            </header>
+
+
+            <!-- CHATBOT WORKSPACE -->
+            <section class="workspace" id="chatbot-workspace">
+
+                <div class="workspace-content chatbot-home">
+
+                    <div class="workspace-heading">
+
+                        <span class="eyebrow">AI ASSISTANT</span>
+
+                        <h1>
+                            What can I help
+                            <span>you with?</span>
+                        </h1>
+
+                        <p>
+                            Your intelligent workspace for research,
+                            development, analysis and everyday tasks.
+                        </p>
+
+                    </div>
+
+
+                    <div class="chat-input-card">
+
+                        <div class="chat-placeholder">
+                            Ask AI Assistant anything...
+                        </div>
+
+                        <button class="send-button">↑</button>
+
+                    </div>
+
+
+                    <div class="quick-actions">
+
+                        <button>Explain something</button>
+                        <button>Analyze code</button>
+                        <button>Research a topic</button>
+                        <button>Help me build</button>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- SECURITY WORKSPACE -->
+            <section class="workspace hidden" id="security-workspace">
+
+                <div class="workspace-content security-home">
+
+                    <div class="security-heading">
+
+                        <div>
+                            <span class="eyebrow">SECURITY ANALYZER</span>
+
+                            <h1>
+                                Protect your AI agents
+                                <span>before use.</span>
+                            </h1>
+
+                            <p>
+                                Analyze agent capabilities, tools, permissions
+                                and configuration to identify security risks
+                                and excessive privileges.
+                            </p>
+                        </div>
+
+                        <button class="primary-action">
+                            <span>＋</span>
+                            New Analysis
+                        </button>
+
+                    </div>
+
+
+                    <!-- SECURITY METRICS -->
+                    <div class="metrics-grid">
+
+                        <div class="metric-card">
+                            <span class="metric-label">AGENTS ANALYZED</span>
+                            <strong>0</strong>
+                            <small>No analyses yet</small>
+                        </div>
+
+                        <div class="metric-card">
+                            <span class="metric-label">CRITICAL RISKS</span>
+                            <strong>0</strong>
+                            <small>Across all agents</small>
+                        </div>
+
+                        <div class="metric-card">
+                            <span class="metric-label">OPEN FINDINGS</span>
+                            <strong>0</strong>
+                            <small>Require attention</small>
+                        </div>
+
+                        <div class="metric-card">
+                            <span class="metric-label">SECURITY SCORE</span>
+                            <strong>—</strong>
+                            <small>Awaiting first analysis</small>
+                        </div>
+
+                    </div>
+
+
+                    <!-- SECURITY MODULES -->
+                    <div class="section-header">
+
+                        <div>
+                            <span class="eyebrow">SECURITY WORKSPACE</span>
+                            <h2>Security operations</h2>
+                        </div>
+
+                    </div>
+
+
+                    <div class="security-modules">
+
+                        <button class="security-module">
+
+                            <span class="module-icon">◉</span>
+
+                            <div>
+                                <strong>Analyze Agent</strong>
+                                <p>
+                                    Scan an AI agent for vulnerabilities,
+                                    excessive permissions and configuration risks.
+                                </p>
+                            </div>
+
+                            <span class="module-arrow">→</span>
+
+                        </button>
+
+
+                        <button class="security-module">
+
+                            <span class="module-icon">⚡</span>
+
+                            <div>
+                                <strong>Security Generator</strong>
+                                <p>
+                                    Generate least-privilege policies,
+                                    hardening rules and actionable fixes.
+                                </p>
+                            </div>
+
+                            <span class="module-arrow">→</span>
+
+                        </button>
+
+
+                        <button class="security-module">
+
+                            <span class="module-icon">▤</span>
+
+                            <div>
+                                <strong>Reports</strong>
+                                <p>
+                                    Review professional security assessments
+                                    and remediation plans.
+                                </p>
+                            </div>
+
+                            <span class="module-arrow">→</span>
+
+                        </button>
+
+
+                        <button class="security-module">
+
+                            <span class="module-icon">◷</span>
+
+                            <div>
+                                <strong>Analysis History</strong>
+                                <p>
+                                    Track previous agents, findings,
+                                    scores and generated policies.
+                                </p>
+                            </div>
+
+                            <span class="module-arrow">→</span>
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/dashboard.js"></script>
+
+</body>
+
+</html>

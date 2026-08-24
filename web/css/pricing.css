@@ -1,0 +1,934 @@
+/* =========================================================
+   AI ASSISTANT
+   PRICING PAGE
+   ========================================================= */
+
+
+/* ---------------------------------------------------------
+   RESET
+   --------------------------------------------------------- */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+
+html {
+    scroll-behavior: smooth;
+}
+
+
+body {
+    min-height: 100vh;
+
+    font-family:
+        Inter,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+    color: #f5f7ff;
+
+    background:
+        radial-gradient(circle at 50% -10%,
+            rgba(110, 76, 255, 0.13),
+            transparent 35%),
+        #08090d;
+
+    overflow-x: hidden;
+}
+
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+
+button {
+    font: inherit;
+}
+
+
+/* ---------------------------------------------------------
+   BACKGROUND
+   --------------------------------------------------------- */
+
+.background-glow {
+    position: fixed;
+
+    width: 500px;
+    height: 500px;
+
+    border-radius: 50%;
+
+    filter: blur(120px);
+
+    pointer-events: none;
+
+    opacity: 0.18;
+
+    z-index: -1;
+}
+
+
+.glow-one {
+    top: 100px;
+    left: -300px;
+
+    background: #6c5ce7;
+}
+
+
+.glow-two {
+    top: 400px;
+    right: -300px;
+
+    background: #3478f6;
+}
+
+
+/* ---------------------------------------------------------
+   HEADER
+   --------------------------------------------------------- */
+
+.pricing-header {
+    width: 100%;
+
+    height: 76px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 42px;
+
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+
+    background: rgba(8, 9, 13, 0.72);
+
+    backdrop-filter: blur(18px);
+
+    position: relative;
+    z-index: 10;
+}
+
+
+.brand {
+    display: flex;
+    align-items: center;
+
+    gap: 10px;
+
+    font-size: 16px;
+    font-weight: 650;
+
+    letter-spacing: -0.2px;
+}
+
+
+.brand-mark {
+    width: 31px;
+    height: 31px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 9px;
+
+    color: white;
+
+    background:
+        linear-gradient(135deg,
+            #735cff,
+            #3d8cff);
+
+    box-shadow:
+        0 0 25px rgba(102, 91, 255, 0.25);
+
+    font-size: 16px;
+}
+
+
+.back-button {
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+
+    padding: 9px 14px;
+
+    border: 1px solid rgba(255, 255, 255, 0.09);
+
+    border-radius: 9px;
+
+    color: #aeb2c2;
+
+    font-size: 13px;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease;
+}
+
+
+.back-button:hover {
+    color: white;
+
+    background: rgba(255, 255, 255, 0.05);
+
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+
+/* ---------------------------------------------------------
+   MAIN
+   --------------------------------------------------------- */
+
+.pricing-page {
+    width: min(1180px, calc(100% - 40px));
+
+    margin: 0 auto;
+
+    padding: 75px 0 80px;
+}
+
+
+/* ---------------------------------------------------------
+   HERO
+   --------------------------------------------------------- */
+
+.pricing-hero {
+    max-width: 700px;
+
+    margin: 0 auto;
+
+    text-align: center;
+}
+
+
+.eyebrow {
+    display: inline-flex;
+
+    align-items: center;
+
+    padding: 6px 11px;
+
+    margin-bottom: 19px;
+
+    border: 1px solid rgba(123, 105, 255, 0.22);
+
+    border-radius: 999px;
+
+    color: #9d91ff;
+
+    background: rgba(109, 91, 255, 0.07);
+
+    font-size: 10px;
+
+    font-weight: 700;
+
+    letter-spacing: 1.5px;
+}
+
+
+.pricing-hero h1 {
+    font-size: clamp(38px, 5vw, 58px);
+
+    line-height: 1.05;
+
+    letter-spacing: -2.5px;
+
+    font-weight: 700;
+
+    color: #f7f8ff;
+}
+
+
+.pricing-hero h1 span {
+    display: block;
+
+    background:
+        linear-gradient(90deg,
+            #9b8cff,
+            #5ea0ff);
+
+    -webkit-background-clip: text;
+    background-clip: text;
+
+    color: transparent;
+}
+
+
+.pricing-hero p {
+    max-width: 570px;
+
+    margin: 20px auto 0;
+
+    color: #8f94a6;
+
+    font-size: 15px;
+
+    line-height: 1.7;
+}
+
+
+/* ---------------------------------------------------------
+   BILLING TOGGLE
+   --------------------------------------------------------- */
+
+.billing-toggle {
+    width: fit-content;
+
+    display: flex;
+    align-items: center;
+
+    margin: 38px auto 42px;
+
+    padding: 4px;
+
+    border: 1px solid rgba(255, 255, 255, 0.08);
+
+    border-radius: 11px;
+
+    background: rgba(255, 255, 255, 0.035);
+}
+
+
+.billing-option {
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+
+    padding: 8px 14px;
+
+    border: 0;
+
+    border-radius: 7px;
+
+    color: #85899a;
+
+    background: transparent;
+
+    cursor: pointer;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    transition:
+        color 0.2s ease,
+        background 0.2s ease;
+}
+
+
+.billing-option.active {
+    color: white;
+
+    background: rgba(255, 255, 255, 0.09);
+}
+
+
+.save-badge {
+    padding: 3px 6px;
+
+    border-radius: 5px;
+
+    color: #8ee6bd;
+
+    background: rgba(63, 207, 139, 0.1);
+
+    font-size: 9px;
+
+    font-weight: 700;
+}
+
+
+/* ---------------------------------------------------------
+   PRICING GRID
+   --------------------------------------------------------- */
+
+.pricing-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap: 18px;
+
+    align-items: stretch;
+}
+
+
+/* ---------------------------------------------------------
+   CARD
+   --------------------------------------------------------- */
+
+.pricing-card {
+    position: relative;
+
+    display: flex;
+    flex-direction: column;
+
+    padding: 28px;
+
+    min-height: 530px;
+
+    border: 1px solid rgba(255, 255, 255, 0.08);
+
+    border-radius: 16px;
+
+    background:
+        linear-gradient(180deg,
+            rgba(255, 255, 255, 0.045),
+            rgba(255, 255, 255, 0.018));
+
+    transition:
+        transform 0.25s ease,
+        border-color 0.25s ease,
+        background 0.25s ease;
+}
+
+
+.pricing-card:hover {
+    transform: translateY(-4px);
+
+    border-color: rgba(255, 255, 255, 0.14);
+
+    background:
+        linear-gradient(180deg,
+            rgba(255, 255, 255, 0.055),
+            rgba(255, 255, 255, 0.022));
+}
+
+
+/* ---------------------------------------------------------
+   FEATURED CARD
+   --------------------------------------------------------- */
+
+.pricing-card.featured {
+    border-color: rgba(111, 92, 255, 0.45);
+
+    background:
+        linear-gradient(180deg,
+            rgba(102, 85, 255, 0.095),
+            rgba(255, 255, 255, 0.025));
+
+    box-shadow:
+        0 0 50px rgba(90, 75, 220, 0.08);
+}
+
+
+.pricing-card.featured:hover {
+    border-color: rgba(126, 109, 255, 0.65);
+}
+
+
+/* ---------------------------------------------------------
+   POPULAR BADGE
+   --------------------------------------------------------- */
+
+.popular-badge {
+    position: absolute;
+
+    top: -12px;
+    left: 50%;
+
+    transform: translateX(-50%);
+
+    padding: 5px 10px;
+
+    border-radius: 999px;
+
+    background:
+        linear-gradient(90deg,
+            #715aff,
+            #4f8cff);
+
+    color: white;
+
+    font-size: 9px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.8px;
+
+    white-space: nowrap;
+
+    box-shadow:
+        0 5px 20px rgba(91, 75, 255, 0.25);
+}
+
+
+/* ---------------------------------------------------------
+   CARD HEADER
+   --------------------------------------------------------- */
+
+.card-top {
+    display: flex;
+    align-items: flex-start;
+
+    gap: 13px;
+}
+
+
+.plan-icon {
+    width: 38px;
+    height: 38px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 10px;
+
+    font-size: 15px;
+}
+
+
+.free-icon {
+    color: #a99dff;
+
+    background: rgba(116, 95, 255, 0.1);
+
+    border: 1px solid rgba(116, 95, 255, 0.16);
+}
+
+
+.pro-icon {
+    color: white;
+
+    background:
+        linear-gradient(135deg,
+            #705cff,
+            #4d8eff);
+
+    box-shadow:
+        0 5px 20px rgba(96, 79, 255, 0.2);
+}
+
+
+.advanced-icon {
+    color: #72b0ff;
+
+    background: rgba(71, 137, 255, 0.09);
+
+    border: 1px solid rgba(71, 137, 255, 0.15);
+}
+
+
+.card-top h2 {
+    margin-bottom: 5px;
+
+    color: #f3f4fa;
+
+    font-size: 19px;
+
+    letter-spacing: -0.4px;
+}
+
+
+.plan-description {
+    color: #85899a;
+
+    font-size: 12px;
+
+    line-height: 1.5;
+}
+
+
+/* ---------------------------------------------------------
+   PRICE
+   --------------------------------------------------------- */
+
+.price-container {
+    display: flex;
+    align-items: baseline;
+
+    margin-top: 32px;
+}
+
+
+.currency {
+    color: #a1a5b5;
+
+    font-size: 18px;
+
+    font-weight: 600;
+
+    margin-right: 3px;
+}
+
+
+.price {
+    color: #f7f8ff;
+
+    font-size: 48px;
+
+    line-height: 1;
+
+    font-weight: 700;
+
+    letter-spacing: -2px;
+}
+
+
+.period {
+    margin-left: 5px;
+
+    color: #7f8495;
+
+    font-size: 12px;
+}
+
+
+.price-description {
+    min-height: 36px;
+
+    margin-top: 10px;
+
+    color: #85899a;
+
+    font-size: 12px;
+
+    line-height: 1.5;
+}
+
+
+/* ---------------------------------------------------------
+   BUTTON
+   --------------------------------------------------------- */
+
+.plan-button {
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 43px;
+
+    margin-top: 21px;
+
+    border: 1px solid rgba(255, 255, 255, 0.1);
+
+    border-radius: 9px;
+
+    color: #e8e9f0;
+
+    background: rgba(255, 255, 255, 0.045);
+
+    font-size: 12px;
+
+    font-weight: 650;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+
+.plan-button:hover {
+    border-color: rgba(255, 255, 255, 0.18);
+
+    background: rgba(255, 255, 255, 0.08);
+
+    transform: translateY(-1px);
+}
+
+
+.plan-button.primary {
+    border-color: transparent;
+
+    color: white;
+
+    background:
+        linear-gradient(100deg,
+            #715aff,
+            #4f8cff);
+
+    box-shadow:
+        0 7px 25px rgba(89, 76, 255, 0.18);
+}
+
+
+.plan-button.primary:hover {
+    background:
+        linear-gradient(100deg,
+            #806cff,
+            #609aff);
+}
+
+
+/* ---------------------------------------------------------
+   FEATURES
+   --------------------------------------------------------- */
+
+.features-title {
+    margin-top: 29px;
+    margin-bottom: 15px;
+
+    color: #aeb2c0;
+
+    font-size: 11px;
+
+    font-weight: 650;
+}
+
+
+.features {
+    display: flex;
+    flex-direction: column;
+
+    gap: 12px;
+
+    list-style: none;
+}
+
+
+.features li {
+    display: flex;
+    align-items: center;
+
+    gap: 9px;
+
+    color: #9a9eae;
+
+    font-size: 12px;
+}
+
+
+.check {
+    width: 18px;
+    height: 18px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    color: #8d83ff;
+
+    background: rgba(108, 91, 255, 0.09);
+
+    font-size: 9px;
+}
+
+
+/* ---------------------------------------------------------
+   BOTTOM TRUST SECTION
+   --------------------------------------------------------- */
+
+.pricing-bottom {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 15px;
+
+    margin-top: 24px;
+
+    padding: 22px;
+
+    border: 1px solid rgba(255, 255, 255, 0.06);
+
+    border-radius: 13px;
+
+    background: rgba(255, 255, 255, 0.018);
+}
+
+
+.bottom-item {
+    display: flex;
+    align-items: center;
+
+    gap: 11px;
+}
+
+
+.bottom-icon {
+    width: 30px;
+    height: 30px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 8px;
+
+    color: #9e93ff;
+
+    background: rgba(108, 91, 255, 0.08);
+
+    font-size: 12px;
+}
+
+
+.bottom-item div {
+    display: flex;
+    flex-direction: column;
+
+    gap: 3px;
+}
+
+
+.bottom-item strong {
+    color: #c7cad5;
+
+    font-size: 11px;
+
+    font-weight: 600;
+}
+
+
+.bottom-item span {
+    color: #707585;
+
+    font-size: 10px;
+
+    line-height: 1.4;
+}
+
+
+/* ---------------------------------------------------------
+   FOOTER
+   --------------------------------------------------------- */
+
+.pricing-footer {
+    width: min(1180px, calc(100% - 40px));
+
+    margin: 0 auto;
+
+    padding: 24px 0 30px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+
+    color: #666b7b;
+
+    font-size: 10px;
+}
+
+
+.footer-links {
+    display: flex;
+
+    gap: 20px;
+}
+
+
+.footer-links a {
+    transition: color 0.2s ease;
+}
+
+
+.footer-links a:hover {
+    color: #b2b5c2;
+}
+
+
+/* ---------------------------------------------------------
+   RESPONSIVE
+   --------------------------------------------------------- */
+
+@media (max-width: 900px) {
+
+    .pricing-grid {
+        grid-template-columns: 1fr;
+
+        max-width: 520px;
+
+        margin: 0 auto;
+    }
+
+
+    .pricing-card {
+        min-height: auto;
+    }
+
+
+    .pricing-bottom {
+        grid-template-columns: 1fr;
+
+        max-width: 520px;
+
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+}
+
+
+@media (max-width: 600px) {
+
+    .pricing-header {
+        height: 68px;
+
+        padding: 0 18px;
+    }
+
+
+    .brand-name {
+        font-size: 14px;
+    }
+
+
+    .back-button {
+        padding: 8px 10px;
+
+        font-size: 11px;
+    }
+
+
+    .pricing-page {
+        width: min(100% - 28px, 520px);
+
+        padding-top: 55px;
+    }
+
+
+    .pricing-hero h1 {
+        font-size: 39px;
+
+        letter-spacing: -1.8px;
+    }
+
+
+    .pricing-hero p {
+        font-size: 13px;
+    }
+
+
+    .pricing-card {
+        padding: 24px;
+    }
+
+
+    .pricing-footer {
+        width: calc(100% - 28px);
+
+        flex-direction: column;
+
+        gap: 14px;
+
+        text-align: center;
+    }
+
+}

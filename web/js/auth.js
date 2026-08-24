@@ -17,37 +17,87 @@
  * =========================================================
  */
 
+console.log("🔥 AUTH.JS LOADED");
+
 "use strict";
 
 
 /* =========================================================
  * INITIALIZATION
  * ========================================================= */
+document.addEventListener("DOMContentLoaded", async () => {
 
-document.addEventListener("DOMContentLoaded", () => {
+    console.log("🔥 DOM CONTENT LOADED");
 
-    const authForm =
-        document.querySelector(".auth-form");
-
-    if (authForm) {
-
-        authForm.addEventListener(
-            "submit",
-            handleAuth
-        );
-
-    }
-
-
-    initializePasswordValidation();
-
-    initializePasswordVisibility();
-
+    const page = document.body.dataset.page;
 
     /*
-     * Google Identity Services loads asynchronously.
+     * Protected pages
      */
-    initializeGoogleWhenReady();
+    if (page === "dashboard") {
+
+        const user = await requireAuthentication();
+
+        if (!user) {
+            return;
+        }
+
+        currentUser = user;
+        isAuthenticated = true;
+
+        initializeDashboard(user);
+    }
+
+    /*
+     * Authentication pages
+     */
+    if (
+        page === "login" ||
+        page === "signup" ||
+        page === "forgot-password"
+    ) {
+
+        /*
+         * Connect authentication forms
+         */
+        const authForm =
+            document.querySelector(".auth-form");
+
+        if (authForm) {
+
+            authForm.addEventListener(
+                "submit",
+                handleAuth
+            );
+
+            console.log(
+                "🔥 AUTH FORM CONNECTED:",
+                authForm.id
+            );
+        }
+
+        /*
+         * Check existing authentication
+         */
+        const user = await loadAuthState();
+
+        /*
+         * Already authenticated
+         */
+        if (user) {
+
+            if (user.plan === null) {
+                window.location.href = "pricing.html";
+            } else {
+                window.location.href = "dashboard.html";
+            }
+
+            return;
+        }
+        initializePasswordValidation();
+        initializePasswordVisibility();
+        initializeGoogleWhenReady();
+    }
 
 });
 
@@ -71,11 +121,18 @@ document.addEventListener("DOMContentLoaded", () => {
  * @param {SubmitEvent} event
  */
 function handleAuth(event) {
+    
+    console.log("🔥 HANDLE AUTH CALLED");
+
+    
+
+    
 
     event.preventDefault();
 
     const form = event.currentTarget;
-
+    console.log("FORM:", form);
+    console.log("FORM ID:", form.id);
 
     /*
      * LOGIN
@@ -250,19 +307,15 @@ async function handleLogin(form) {
          * backend API request.
          */
         const result = await submitLogin(loginData);
-        const storage = loginData.remember
-            ? localStorage
-            : sessionStorage;
 
-        storage.setItem(
-            "authenticatedUser",
-            JSON.stringify(result.user)
-        );
-        console.log(
-            "Loging successful:",
-            result
-        );
-
+        currentUser = result.user
+        isAuthenticated = true;
+        if (result.user.plan === null) {
+            window.location.href = "pricing.html";
+        } else {
+            window.location.href = "dashboard.html";
+        }
+       
 
         /*
          * Login validation succeeded.
@@ -327,23 +380,28 @@ async function handleLogin(form) {
  * API request later.
  */
 async function submitLogin(loginData) {
+
     const response = await fetch(
         "http://127.0.0.1:8001/api/auth/login",
         {
             method: "POST",
+
             headers: {
                 "Content-Type": "application/json"
             },
+
+            credentials: "include",
+
             body: JSON.stringify({
                 email: loginData.email,
-                password: loginData.password
+                password: loginData.password,
+                remember: loginData.remember
             })
         }
     );
 
     const data = await response.json();
 
-    // HTTP-level failure
     if (!response.ok) {
         throw new Error(
             data.detail?.[0]?.msg ||
@@ -352,7 +410,6 @@ async function submitLogin(loginData) {
         );
     }
 
-    // Backend authentication failure
     if (!data.success) {
         throw new Error(
             data.message ||
@@ -428,8 +485,8 @@ function initializeGoogleWhenReady() {
  *
  * @param {HTMLFormElement} form
  */
-function handleSignup(form) {
-
+async function handleSignup(form) {
+    console.log("🔥 HANDLE SIGNUP CALLED");
     const name =
         document.getElementById("name");
 
@@ -449,16 +506,16 @@ function handleSignup(form) {
         document.getElementById("password-error");
 
 
-    /*
-     * Safety check.
-     */
+    /* =====================================================
+     * SAFETY CHECK
+     * ===================================================== */
+
     if (
         !name ||
         !email ||
         !password ||
         !confirmPassword
     ) {
-
         console.error(
             "Signup fields are missing from the page."
         );
@@ -467,19 +524,24 @@ function handleSignup(form) {
     }
 
 
-    /*
-     * Clear previous errors.
-     */
+    /* =====================================================
+     * CLEAR PREVIOUS ERRORS
+     * ===================================================== */
+
     clearValidationErrors(
         password,
         confirmPassword,
         passwordError
     );
 
+    clearInputError(name);
+    clearInputError(email);
 
-    /*
-     * Validate name.
-     */
+
+    /* =====================================================
+     * VALIDATE NAME
+     * ===================================================== */
+
     if (!name.value.trim()) {
 
         showInputError(
@@ -493,9 +555,10 @@ function handleSignup(form) {
     }
 
 
-    /*
-     * Validate email.
-     */
+    /* =====================================================
+     * VALIDATE EMAIL
+     * ===================================================== */
+
     if (!email.value.trim()) {
 
         showInputError(
@@ -509,9 +572,23 @@ function handleSignup(form) {
     }
 
 
-    /*
-     * Validate password length.
-     */
+    if (!email.validity.valid) {
+
+        showInputError(
+            email,
+            "Please enter a valid email address."
+        );
+
+        email.focus();
+
+        return;
+    }
+
+
+    /* =====================================================
+     * VALIDATE PASSWORD
+     * ===================================================== */
+
     if (password.value.length < 8) {
 
         showPasswordError(
@@ -526,9 +603,10 @@ function handleSignup(form) {
     }
 
 
-    /*
-     * Validate password confirmation.
-     */
+    /* =====================================================
+     * VALIDATE PASSWORD CONFIRMATION
+     * ===================================================== */
+
     if (
         password.value !==
         confirmPassword.value
@@ -546,10 +624,14 @@ function handleSignup(form) {
     }
 
 
-    /*
-     * Validate terms.
-     */
-    if (terms && !terms.checked) {
+    /* =====================================================
+     * VALIDATE TERMS
+     * ===================================================== */
+
+    if (
+        terms &&
+        !terms.checked
+    ) {
 
         showTermsError(terms);
 
@@ -557,26 +639,63 @@ function handleSignup(form) {
     }
 
 
-    /*
-     * Build signup payload.
-     *
-     * Never include the password in console logs.
-     */
+    /* =====================================================
+     * BUILD SIGNUP PAYLOAD
+     * ===================================================== */
+
     const signupData = {
 
-        name: name.value.trim(),
+        name:
+            name.value.trim(),
 
-        email: email.value.trim(),
+        email:
+            email.value.trim(),
 
-        password: password.value
+        password:
+            password.value
 
     };
 
 
-    /*
-     * Submit signup.
-     */
-    submitSignup(signupData);
+    /* =====================================================
+     * SUBMIT TO BACKEND
+     * ===================================================== */
+
+    try {
+
+        await submitSignup(
+            signupData
+        );
+
+
+        /* =============================================
+         * SIGNUP SUCCESS
+         * ============================================= */
+
+        console.log(
+            "Signup successful."
+        );
+
+
+        window.location.href =
+            "login.html";
+
+
+    } catch (error) {
+
+        console.error(
+            "Signup failed:",
+            error
+        );
+
+
+        showInputError(
+            email,
+            error.message ||
+            "Signup failed."
+        );
+
+    }
 
 }
 
@@ -586,35 +705,49 @@ function handleSignup(form) {
  * ========================================================= */
 
 /**
- * Temporary signup submission handler.
- *
- * Backend API will be connected later.
- *
  * @param {Object} signupData
  */
 async function submitSignup(signupData) {
 
-    /*
-     * Never log passwords.
-     */
+    const response = await fetch(
+        "http://127.0.0.1:8001/api/auth/signup",
+        {
+            method: "POST",
 
-    console.log(
-        "Signup validation successful."
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            credentials: "include",
+
+            body: JSON.stringify({
+                name: signupData.name,
+                email: signupData.email,
+                password: signupData.password
+            })
+        }
     );
 
-    console.log({
-        name: signupData.name,
-        email: signupData.email
-    });
+    const data = await response.json();
 
+    if (!response.ok) {
+        throw new Error(
+            data.detail?.[0]?.msg ||
+            data.message ||
+            "Signup failed."
+        );
+    }
 
-    /*
-     * Future:
-     *
-     * POST /api/auth/signup
-     */
+    if (!data.success) {
+        throw new Error(
+            data.message ||
+            "Signup failed."
+        );
+    }
 
+    return data;
 }
+
 
 
 /* =========================================================
@@ -1575,3 +1708,206 @@ async function handleForgotPassword(form) {
 
 }
 
+let currentUser = null;
+let isAuthenticated = false;
+
+async function loadAuthState() {
+
+    try {
+
+        const response = await fetch(
+            "http://127.0.0.1:8001/api/auth/me",
+            {
+                method: "GET",
+                credentials: "include"
+            }
+        );
+
+        if (!response.ok) {
+
+            currentUser = null;
+            isAuthenticated = false;
+
+            return null;
+        }
+
+        const data = await response.json();
+
+        if (!data.success) {
+
+            currentUser = null;
+            isAuthenticated = false;
+
+            return null;
+        }
+
+        currentUser = data.user;
+        isAuthenticated = true;
+
+        console.log(
+            "Authenticated user:",
+            currentUser
+        );
+
+        return currentUser;
+
+    } catch (error) {
+
+        console.error(
+            "Failed to load authentication state:",
+            error
+        );
+
+        currentUser = null;
+        isAuthenticated = false;
+
+        return null;
+    }
+}
+
+async function logout() {
+    try {
+        const response = await fetch(
+            "http://127.0.0.1:8001/api/auth/logout",
+            {
+                method: "POST",
+                credentials: "include"
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(
+                data.message || "Logout failed."
+            );
+        }
+
+        console.log("Logout successful.");
+
+        // Authentication is now controlled by the backend session.
+        localStorage.removeItem("authenticatedUser");
+        sessionStorage.removeItem("authenticatedUser");
+
+        window.location.href = "login.html";
+
+    } catch (error) {
+        console.error("Logout failed:", error);
+    }
+}
+
+async function requireAuthentication() {
+    try {
+        const response = await fetch(
+            "http://127.0.0.1:8001/api/auth/me",
+            {
+                method: "GET",
+                credentials: "include"
+            }
+        );
+
+        if (!response.ok) {
+            window.location.href = "login.html";
+            return null;
+        }
+
+        const data = await response.json();
+
+        if (!data.success || !data.user) {
+            window.location.href = "login.html";
+            return null;
+        }
+
+        return data.user;
+
+    } catch (error) {
+        console.error("Authentication check failed:", error);
+        window.location.href = "login.html";
+        return null;
+    }
+}
+
+function initializeDashboard(user) {
+    const nameElement =
+        document.getElementById("user-name");
+
+    const emailElement =
+        document.getElementById("user-email");
+
+    const avatarElement =
+        document.querySelector(".user-avatar");
+
+    if (nameElement) {
+        nameElement.textContent =
+            user.name ||
+            user.full_name ||
+            "User";
+    }
+
+    if (emailElement) {
+        emailElement.textContent =
+            user.email || "";
+    }
+
+    if (avatarElement) {
+        const name =
+            user.name ||
+            user.full_name ||
+            user.email ||
+            "U";
+
+        avatarElement.textContent =
+            name.charAt(0).toUpperCase();
+    }
+
+    initializeLogout();
+}
+
+function initializeLogout() {
+    const userAccount = document.querySelector(".user-account");
+    const userMenu = document.querySelector(".user-menu");
+    const userDropdown = document.getElementById("user-dropdown");
+    const logoutButton = document.getElementById("logout-button");
+
+    if (!userAccount || !userMenu || !userDropdown) {
+        console.warn("User account elements not found.");
+        return;
+    }
+
+    // Open / close dropdown
+    userMenu.addEventListener("click", (event) => {
+        event.stopPropagation();
+
+        const isOpen = !userDropdown.hidden;
+
+        userDropdown.hidden = isOpen;
+        userMenu.setAttribute(
+            "aria-expanded",
+            isOpen ? "false" : "true"
+        );
+    });
+
+    // Prevent clicks inside dropdown from reaching document
+    userDropdown.addEventListener("click", (event) => {
+        event.stopPropagation();
+    });
+
+    // Close when clicking anywhere outside
+    document.addEventListener("click", () => {
+        if (!userDropdown.hidden) {
+            userDropdown.hidden = true;
+
+            userMenu.setAttribute(
+                "aria-expanded",
+                "false"
+            );
+        }
+    });
+
+    // Logout
+    if (logoutButton) {
+        logoutButton.addEventListener("click", async () => {
+            await logout();
+        });
+    }
+}

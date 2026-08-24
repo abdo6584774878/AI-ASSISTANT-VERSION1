@@ -19,8 +19,32 @@ def initialize_database():
             name TEXT NOT NULL,
             email TEXT NOT NULL UNIQUE,
             password_hash TEXT NOT NULL,
+            plan TEXT DEFAULT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
+    """)
+
+    connection.execute("""
+        CREATE TABLE IF NOT EXISTS sessions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            session_token TEXT NOT NULL UNIQUE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            expires_at TIMESTAMP NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )
+    """)
+
+    # Add the plan column to existing databases that were
+    # created before subscription plans existed.
+    columns = connection.execute("PRAGMA table_info(users)").fetchall()
+
+    column_names = [column["name"] for column in columns]
+
+    if "plan" not in column_names:
+        connection.execute("""
+            ALTER TABLE users
+            ADD COLUMN plan TEXT NOT NULL DEFAULT 'free'
         """)
 
     connection.commit()
