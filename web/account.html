@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Account — AI Assistant</title>
+
+    <link rel="stylesheet" href="css/dashboard.css">
+
+    <style>
+        html, body {
+            min-height: 100%;
+            height: auto !important;
+            margin: 0;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        .account-main{
+            min-height: 100vh;
+            height: auto !important;
+            overflow: visible !important;
+        }
+        .account-page {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 42px 40px 60px;
+        }
+
+        .page-heading {
+            margin-bottom: 32px;
+        }
+
+        .page-heading .eyebrow {
+            margin-bottom: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            color: #858b99;
+        }
+
+        .page-heading h1 {
+            margin: 0;
+            font-size: 32px;
+            font-weight: 650;
+            letter-spacing: -0.03em;
+            color: #f4f5f7;
+        }
+
+        .page-heading p {
+            margin: 10px 0 0;
+            color: #8d929d;
+            font-size: 14px;
+        }
+
+        .account-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .account-card {
+            background: #17191f;
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 16px;
+            padding: 24px;
+        }
+
+        .account-card.full {
+            grid-column: 1 / -1;
+        }
+
+        .card-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 22px;
+        }
+
+        .card-heading h2 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: #f1f2f4;
+        }
+
+        .card-heading p {
+            margin: 5px 0 0;
+            color: #858a96;
+            font-size: 13px;
+        }
+
+        .profile-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .profile-avatar {
+            width: 58px;
+            height: 58px;
+            border-radius: 16px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            background: linear-gradient(135deg,
+                    #272b34,
+                    #1d2027);
+
+            border: 1px solid rgba(255, 255, 255, .08);
+
+            color: #f5f6f8;
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+        .profile-name {
+            color: #f4f5f7;
+            font-size: 17px;
+            font-weight: 600;
+        }
+
+        .profile-email {
+            margin-top: 4px;
+            color: #858b97;
+            font-size: 13px;
+        }
+
+        .account-field {
+            margin-bottom: 16px;
+        }
+
+        .account-field:last-child {
+            margin-bottom: 0;
+        }
+
+        .account-field label {
+            display: block;
+            margin-bottom: 7px;
+            color: #858b97;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .account-value {
+            width: 100%;
+            box-sizing: border-box;
+
+            padding: 11px 13px;
+
+            background: #111318;
+            border: 1px solid rgba(255, 255, 255, .06);
+            border-radius: 9px;
+
+            color: #dfe1e6;
+            font-size: 13px;
+        }
+
+        .plan-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .plan-info {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .plan-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            background: rgba(255, 255, 255, .05);
+            border: 1px solid rgba(255, 255, 255, .07);
+
+            color: #dfe2e8;
+        }
+
+        .plan-name {
+            color: #f1f2f4;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .plan-description {
+            margin-top: 4px;
+            color: #858b97;
+            font-size: 12px;
+        }
+
+        .plan-badge {
+            padding: 6px 10px;
+            border-radius: 999px;
+
+            background: rgba(255, 255, 255, .06);
+            color: #cfd2d8;
+
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .danger-card {
+            border-color: rgba(255, 80, 80, 0.12);
+        }
+
+        .danger-card h2 {
+            color: #ff8585;
+        }
+
+        .danger-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .danger-content p {
+            margin: 5px 0 0;
+            color: #858b97;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .danger-button {
+            flex-shrink: 0;
+
+            padding: 10px 14px;
+
+            border: 1px solid rgba(255, 80, 80, .18);
+            border-radius: 9px;
+
+            background: rgba(255, 80, 80, .06);
+            color: #ff8585;
+
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .danger-button:hover {
+            background: rgba(255, 80, 80, .1);
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+
+            margin-bottom: 28px;
+
+            color: #858b97;
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+        .back-link:hover {
+            color: #f0f1f3;
+        }
+
+        @media (max-width: 750px) {
+            .account-page {
+                padding: 30px 20px 50px;
+            }
+
+            .account-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .account-card.full {
+                grid-column: auto;
+            }
+
+            .plan-card,
+            .danger-content {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+        }
+            body::-webkit-scrollbar {
+                width: 7px;
+            }
+
+            body::-webkit-scrollbar-track {
+                background: transparent;
+            }
+
+            body::-webkit-scrollbar-thumb {
+                background: rgba(255, 255, 255, 0.12);
+                border-radius: 999px;
+            }
+
+            body::-webkit-scrollbar-thumb:hover {
+                background: rgba(255, 255, 255, 0.2);
+            }
+        
+    </style>
+</head>
+
+<body>
+
+    <main class="main account-main">
+
+        <header class="topbar">
+            <div class="topbar-left">
+                <div class="breadcrumb">
+                    <span>AI ASSISTANT</span>
+                    <span class="breadcrumb-separator">/</span>
+                    <strong>Account</strong>
+                </div>
+            </div>
+        </header>
+
+
+        <div class="account-page">
+
+            <a href="dashboard.html" class="back-link">
+                ← Back to dashboard
+            </a>
+
+
+            <section class="page-heading">
+
+                <div class="eyebrow">
+                    ACCOUNT
+                </div>
+
+                <h1>
+                    Your account
+                </h1>
+
+                <p>
+                    Manage your profile and subscription.
+                </p>
+
+            </section>
+
+
+            <section class="account-grid">
+
+                <!-- PROFILE -->
+
+                <article class="account-card">
+
+                    <div class="card-heading">
+
+                        <div>
+                            <h2>Profile</h2>
+
+                            <p>
+                                Your personal information.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="profile-row">
+
+                        <div class="profile-avatar" id="profile-avatar">
+                            A
+                        </div>
+
+                        <div>
+
+                            <div class="profile-name" id="profile-name">
+                                Loading...
+                            </div>
+
+                            <div class="profile-email" id="profile-email">
+                                Loading...
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="account-field">
+
+                        <label>Name</label>
+
+                        <div class="account-value" id="account-name">
+                            Loading...
+                        </div>
+
+                    </div>
+
+
+                    <div class="account-field">
+
+                        <label>Email</label>
+
+                        <div class="account-value" id="account-email">
+                            Loading...
+                        </div>
+
+                    </div>
+
+                </article>
+
+
+                <!-- PLAN -->
+
+                <article class="account-card">
+
+                    <div class="card-heading">
+
+                        <div>
+                            <h2>Current plan</h2>
+
+                            <p>
+                                Your AI Assistant subscription.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="plan-card">
+
+                        <div class="plan-info">
+
+                            <div class="plan-icon">
+                                ✦
+                            </div>
+
+                            <div>
+
+                                <div class="plan-name" id="plan-name">
+                                    Loading...
+                                </div>
+
+                                <div class="plan-description">
+                                    Your current workspace access.
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <span class="plan-badge" id="plan-badge">
+                            Active
+                        </span>
+
+                    </div>
+
+                </article>
+
+
+                <!-- ACCOUNT INFORMATION -->
+
+                <article class="account-card full">
+
+                    <div class="card-heading">
+
+                        <div>
+                            <h2>Account information</h2>
+
+                            <p>
+                                Information associated with your AI Assistant account.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="account-field">
+
+                        <label>Account ID</label>
+
+                        <div class="account-value" id="account-id">
+                            Loading...
+                        </div>
+
+                    </div>
+
+                </article>
+
+
+                <!-- DANGER -->
+
+                <article class="account-card danger-card full">
+
+                    <div class="card-heading">
+
+                        <div>
+                            <h2>Danger zone</h2>
+
+                            <p>
+                                Actions here can affect your account.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="danger-content">
+
+                        <div>
+
+                            <strong>
+                                Delete account
+                            </strong>
+
+                            <p>
+                                Permanently delete your AI Assistant account
+                                and associated data.
+                            </p>
+
+                        </div>
+
+                        <button type="button" class="danger-button">
+                            Delete account
+                        </button>
+
+                    </div>
+
+                </article>
+
+            </section>
+
+        </div>
+
+    </main>
+
+
+    <script>
+
+        async function loadAccount() {
+
+            try {
+
+                const response = await fetch(
+                    "http://127.0.0.1:8001/api/auth/me",
+                    {
+                        credentials: "include"
+                    }
+                );
+
+                const data =
+                    await response.json();
+
+                if (
+                    !response.ok ||
+                    !data.success ||
+                    !data.user
+                ) {
+                    window.location.href =
+                        "login.html";
+
+                    return;
+                }
+
+                const user = data.user;
+
+                const name =
+                    user.name ||
+                    user.full_name ||
+                    "User";
+
+                const email =
+                    user.email ||
+                    "";
+
+                const plan =
+                    user.plan ||
+                    "Free";
+
+                document.getElementById(
+                    "profile-name"
+                ).textContent = name;
+
+                document.getElementById(
+                    "profile-email"
+                ).textContent = email;
+
+                document.getElementById(
+                    "account-name"
+                ).textContent = name;
+
+                document.getElementById(
+                    "account-email"
+                ).textContent = email;
+
+                document.getElementById(
+                    "account-id"
+                ).textContent = user.id;
+
+                document.getElementById(
+                    "plan-name"
+                ).textContent =
+                    plan.charAt(0).toUpperCase() +
+                    plan.slice(1);
+
+                document.getElementById(
+                    "profile-avatar"
+                ).textContent =
+                    name.charAt(0).toUpperCase();
+
+            } catch (error) {
+
+                console.error(
+                    "Failed to load account:",
+                    error
+                );
+
+            }
+
+        }
+
+        loadAccount();
+
+    </script>
+
+</body>
+
+</html>

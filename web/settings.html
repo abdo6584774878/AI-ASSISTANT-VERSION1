@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Settings — AI Assistant</title>
+
+    <link rel="stylesheet" href="css/dashboard.css">
+
+    <style>
+           html,
+           body {
+            min-height: 100%;
+            height: auto;
+            margin: 0;
+            overflow-x: hidden;
+            overflow-y: auto;
+        } 
+
+     .main {
+        min-height: 100vh;
+        height: auto;
+        overflow: visible;
+     }
+
+     .settings-page {
+        min-height: 100vh;
+        height: auto;
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 42px 40px 80px;
+        box-sizing: border-box;
+        overflow: visible;
+     }
+
+     .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+
+        margin-bottom: 28px;
+
+        color: #858b97;
+        text-decoration: none;
+        font-size: 13px;
+     }
+
+     .back-link:hover {
+        color: #f0f1f3;
+     }
+
+        .page-heading {
+            margin-bottom: 32px;
+        }
+
+        .eyebrow {
+            margin-bottom: 10px;
+
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .14em;
+
+            color: #858b99;
+        }
+
+        .page-heading h1 {
+            margin: 0;
+
+            color: #f4f5f7;
+
+            font-size: 32px;
+            font-weight: 650;
+
+            letter-spacing: -.03em;
+        }
+
+        .page-heading p {
+            margin: 10px 0 0;
+
+            color: #8d929d;
+
+            font-size: 14px;
+        }
+
+        .settings-section {
+            margin-bottom: 18px;
+
+            background: #17191f;
+
+            border: 1px solid rgba(255, 255, 255, .07);
+
+            border-radius: 16px;
+
+            overflow: hidden;
+        }
+
+        .settings-header {
+            padding: 21px 24px;
+
+            border-bottom: 1px solid rgba(255, 255, 255, .06);
+        }
+
+        .settings-header h2 {
+            margin: 0;
+
+            color: #f1f2f4;
+
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .settings-header p {
+            margin: 5px 0 0;
+
+            color: #858b97;
+
+            font-size: 12px;
+        }
+
+        .setting-row {
+            min-height: 70px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 20px;
+
+            padding: 16px 24px;
+
+            border-bottom: 1px solid rgba(255, 255, 255, .05);
+        }
+
+        .setting-row:last-child {
+            border-bottom: none;
+        }
+
+        .setting-info {
+            min-width: 0;
+        }
+
+        .setting-title {
+            color: #e9eaed;
+
+            font-size: 13px;
+            font-weight: 550;
+        }
+
+        .setting-description {
+            margin-top: 5px;
+
+            color: #858b97;
+
+            font-size: 12px;
+            line-height: 1.45;
+        }
+
+        .setting-control {
+            flex-shrink: 0;
+        }
+
+        .setting-select {
+            min-width: 150px;
+
+            padding: 9px 11px;
+
+            background: #111318;
+
+            border: 1px solid rgba(255, 255, 255, .07);
+
+            border-radius: 8px;
+
+            color: #dfe1e6;
+
+            font-family: inherit;
+            font-size: 12px;
+
+            outline: none;
+        }
+
+        .setting-select:focus {
+            border-color: rgba(255, 255, 255, .16);
+        }
+
+        /* Toggle */
+
+        .toggle {
+            position: relative;
+
+            width: 42px;
+            height: 24px;
+
+            display: block;
+
+            cursor: pointer;
+        }
+
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-track {
+            position: absolute;
+            inset: 0;
+
+            background: #292c34;
+
+            border: 1px solid rgba(255, 255, 255, .07);
+
+            border-radius: 999px;
+
+            transition: .18s ease;
+        }
+
+        .toggle-track::before {
+            content: "";
+
+            position: absolute;
+
+            width: 18px;
+            height: 18px;
+
+            left: 2px;
+            top: 2px;
+
+            background: #969aa3;
+
+            border-radius: 50%;
+
+            transition: .18s ease;
+        }
+
+        .toggle input:checked+.toggle-track {
+            background: #e7e9ed;
+        }
+
+        .toggle input:checked+.toggle-track::before {
+            transform: translateX(18px);
+
+            background: #17191f;
+        }
+
+        /* Security buttons */
+
+        .settings-action {
+            padding: 9px 13px;
+
+            background: rgba(255, 255, 255, .04);
+
+            border: 1px solid rgba(255, 255, 255, .07);
+
+            border-radius: 8px;
+
+            color: #dfe1e6;
+
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 500;
+
+            cursor: pointer;
+
+            transition: .15s ease;
+        }
+
+        .settings-action:hover {
+            background: rgba(255, 255, 255, .07);
+        }
+
+        body::-webkit-scrollbar {
+        width: 7px;
+     }
+
+     body::-webkit-scrollbar-track {
+        background: transparent;
+     }
+
+     body::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.12);
+        border-radius: 999px;
+     }
+
+     body::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.2);
+     }
+
+     @media (max-width: 700px) {
+        .settings-page {
+            padding: 30px 20px 60px;
+        }
+
+        .setting-row {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .setting-control {
+            width: 100%;
+        }
+
+        .setting-select {
+            width: 100%;
+        }
+     }
+
+        
+    </style>
+
+</head>
+
+<body>
+
+    <main class="main">
+
+        <header class="topbar">
+
+            <div class="topbar-left">
+
+                <div class="breadcrumb">
+
+                    <span>
+                        AI ASSISTANT
+                    </span>
+
+                    <span class="breadcrumb-separator">
+                        /
+                    </span>
+
+                    <strong>
+                        Settings
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <div class="settings-page">
+
+            <a href="dashboard.html" class="back-link">
+                ← Back to dashboard
+            </a>
+
+
+            <section class="page-heading">
+
+                <div class="eyebrow">
+                    SETTINGS
+                </div>
+
+                <h1>
+                    Settings
+                </h1>
+
+                <p>
+                    Customize your AI Assistant experience.
+                </p>
+
+            </section>
+
+
+            <!-- GENERAL -->
+
+            <section class="settings-section">
+
+                <div class="settings-header">
+
+                    <h2>
+                        General
+                    </h2>
+
+                    <p>
+                        Control how AI Assistant behaves.
+                    </p>
+
+                </div>
+
+
+                <div class="setting-row">
+
+                    <div class="setting-info">
+
+                        <div class="setting-title">
+                            Language
+                        </div>
+
+                        <div class="setting-description">
+                            Choose the language used throughout the interface.
+                        </div>
+
+                    </div>
+
+
+                    <div class="setting-control">
+
+                        <select class="setting-select">
+
+                            <option>
+                                English
+                            </option>
+
+                            <option>
+                                Français
+                            </option>
+
+                            <option>
+                                العربية
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+
+                <div class="setting-row">
+
+                    <div class="setting-info">
+
+                        <div class="setting-title">
+                            Remember workspace
+                        </div>
+
+                        <div class="setting-description">
+                            Open your last selected workspace when returning.
+                        </div>
+
+                    </div>
+
+
+                    <div class="setting-control">
+
+                        <label class="toggle">
+
+                            <input type="checkbox" checked>
+
+                            <span class="toggle-track"></span>
+
+                        </label>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- APPEARANCE -->
+
+            <section class="settings-section">
+
+                <div class="settings-header">
+
+                    <h2>
+                        Appearance
+                    </h2>
+
+                    <p>
+                        Customize the look of your workspace.
+                    </p>
+
+                </div>
+
+
+                <div class="setting-row">
+
+                    <div class="setting-info">
+
+                        <div class="setting-title">
+                            Theme
+                        </div>
+
+                        <div class="setting-description">
+                            Choose how AI Assistant should appear.
+                        </div>
+
+                    </div>
+
+
+                    <div class="setting-control">
+
+                        <select class="setting-select">
+
+                            <option>
+                                Dark
+                            </option>
+
+                            <option disabled>
+                                Light — coming soon
+                            </option>
+
+                            <option disabled>
+                                System — coming soon
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- PRIVACY -->
+
+            <section class="settings-section">
+
+                <div class="settings-header">
+
+                    <h2>
+                        Privacy
+                    </h2>
+
+                    <p>
+                        Control your data and conversation preferences.
+                    </p>
+
+                </div>
+
+
+                <div class="setting-row">
+
+                    <div class="setting-info">
+
+                        <div class="setting-title">
+                            Conversation history
+                        </div>
+
+                        <div class="setting-description">
+                            Allow AI Assistant to save your conversations.
+                        </div>
+
+                    </div>
+
+
+                    <div class="setting-control">
+
+                        <label class="toggle">
+
+                            <input type="checkbox" checked>
+
+                            <span class="toggle-track"></span>
+
+                        </label>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- SECURITY -->
+
+            <section class="settings-section">
+
+                <div class="settings-header">
+
+                    <h2>
+                        Security
+                    </h2>
+
+                    <p>
+                        Manage your account security.
+                    </p>
+
+                </div>
+
+
+                <div class="setting-row">
+
+                    <div class="setting-info">
+
+                        <div class="setting-title">
+                            Password
+                        </div>
+
+                        <div class="setting-description">
+                            Change the password associated with your account.
+                        </div>
+
+                    </div>
+
+
+                    <div class="setting-control">
+
+                        <button type="button" class="settings-action">
+                            Change password
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div class="setting-row">
+
+                    <div class="setting-info">
+
+                        <div class="setting-title">
+                            Active sessions
+                        </div>
+
+                        <div class="setting-description">
+                            Manage devices currently signed into your account.
+                        </div>
+
+                    </div>
+
+
+                    <div class="setting-control">
+
+                        <button type="button" class="settings-action">
+                            Manage sessions
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </div>
+
+    </main>
+
+</body>
+
+</html>

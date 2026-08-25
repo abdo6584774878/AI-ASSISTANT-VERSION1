@@ -123,7 +123,12 @@ button {
     font-weight: 600;
     letter-spacing: -0.02em;
 }
-
+.logo-image {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+    display: block;
+}
 .logo-mark {
     width: 30px;
     height: 30px;
@@ -1201,5 +1206,790 @@ footer .logo-mark {
     *::after {
         transition-duration: 0.01ms !important;
         animation-duration: 0.01ms !important;
+    }
+}
+
+/* =========================================================
+   SECURITY ANALYZER
+   ========================================================= */
+
+.security-analyzer {
+    position: relative;
+    width: min(var(--container), calc(100% - 48px));
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 150px 0 160px;
+}
+
+.security-analyzer::before {
+    content: "";
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    width: 800px;
+    height: 500px;
+    transform: translateX(-50%);
+
+    background:
+        radial-gradient(circle,
+            rgba(255, 255, 255, 0.055),
+            transparent 65%);
+
+    filter: blur(50px);
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* ---------------------------------------------------------
+   Heading
+   --------------------------------------------------------- */
+
+.security-analyzer-heading {
+    max-width: 720px;
+    margin: 0 auto 60px;
+    text-align: center;
+}
+
+.security-analyzer-heading .section-eyebrow {
+    display: inline-block;
+    margin-bottom: 14px;
+}
+
+.security-analyzer-heading h2 {
+    margin: 0;
+
+    color: #f4f5f7;
+
+    font-size: clamp(34px, 4vw, 52px);
+    line-height: 1.08;
+    font-weight: 650;
+
+    letter-spacing: -0.04em;
+}
+
+.security-analyzer-heading h2 span {
+    display: block;
+    color: #858b97;
+}
+
+.security-analyzer-heading p {
+    max-width: 650px;
+    margin: 20px auto 0;
+
+    color: #858b97;
+
+    font-size: 15px;
+    line-height: 1.7;
+}
+
+
+/* ---------------------------------------------------------
+   Main workstation
+   --------------------------------------------------------- */
+
+.security-workstation {
+    position: relative;
+
+    background:
+        linear-gradient(145deg,
+            rgba(255, 255, 255, 0.055),
+            rgba(255, 255, 255, 0.012));
+
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 24px;
+
+    box-shadow:
+        0 50px 120px rgba(0, 0, 0, 0.55),
+        0 0 100px rgba(255, 255, 255, 0.025),
+        inset 0 1px 0 rgba(255, 255, 255, 0.07);
+
+    overflow: hidden;
+}
+
+.security-workstation::before {
+    content: "";
+
+    position: absolute;
+    top: 0;
+    left: 15%;
+    right: 15%;
+    height: 1px;
+
+    background:
+        linear-gradient(90deg,
+            transparent,
+            rgba(255, 255, 255, 0.25),
+            transparent);
+
+    pointer-events: none;
+}
+
+/* ---------------------------------------------------------
+   Workstation header
+   --------------------------------------------------------- */
+
+.security-workstation-header {
+    min-height: 68px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 22px;
+
+    background: #17191f;
+
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.security-workstation-title {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+}
+
+.security-workstation-title>div {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.security-workstation-title strong {
+    color: #e9eaed;
+
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.security-workstation-title span:not(.security-status-dot) {
+    color: #707682;
+
+    font-size: 10px;
+}
+
+.security-status-dot {
+    width: 7px;
+    height: 7px;
+
+    flex-shrink: 0;
+
+    border-radius: 50%;
+
+    background: #cfd2d8;
+
+    box-shadow:
+        0 0 0 4px rgba(207, 210, 216, 0.06);
+}
+
+.security-status {
+    padding: 6px 9px;
+
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 6px;
+
+    background: rgba(255, 255, 255, 0.035);
+
+    color: #858b97;
+
+    font-size: 9px;
+    font-weight: 600;
+
+    letter-spacing: 0.08em;
+}
+
+
+/* ---------------------------------------------------------
+   Workstation body
+   --------------------------------------------------------- */
+
+.security-workstation-body {
+    display: grid;
+    grid-template-columns: 0.9fr 1.1fr;
+
+    gap: 0;
+
+    padding: 28px;
+}
+
+.security-agent {
+    padding-right: 28px;
+
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.security-analysis {
+    padding-left: 28px;
+}
+
+.security-panel-label {
+    margin-bottom: 13px;
+
+    color: #626874;
+
+    font-size: 9px;
+    font-weight: 700;
+
+    letter-spacing: 0.14em;
+}
+
+
+/* ---------------------------------------------------------
+   Agent card
+   --------------------------------------------------------- */
+
+.agent-card {
+    padding: 18px;
+
+    background: #17191f;
+
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 13px;
+}
+
+.agent-card-header {
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+
+    padding-bottom: 17px;
+
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.agent-icon {
+    width: 38px;
+    height: 38px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    border-radius: 10px;
+
+    background: #22252d;
+
+    border: 1px solid rgba(255, 255, 255, 0.08);
+
+    color: #e9eaed;
+
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.agent-card-header div:last-child {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.agent-card-header strong {
+    color: #e6e8eb;
+
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.agent-card-header span {
+    color: #707682;
+
+    font-size: 11px;
+}
+
+.agent-property {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    padding: 14px 0;
+
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.agent-property:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.agent-property>span {
+    color: #666c77;
+
+    font-size: 10px;
+    font-weight: 600;
+
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.agent-property>strong {
+    color: #c9ccd2;
+
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.5;
+}
+
+.agent-tags {
+    display: flex;
+    flex-wrap: wrap;
+
+    gap: 6px;
+}
+
+.agent-tags span {
+    padding: 5px 7px;
+
+    background: #111318;
+
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 6px;
+
+    color: #9da1aa;
+
+    font-size: 9px;
+}
+
+
+/* ---------------------------------------------------------
+   Security score
+   --------------------------------------------------------- */
+
+.security-score {
+    display: flex;
+    align-items: center;
+
+    gap: 15px;
+
+    padding: 17px;
+
+    margin-bottom: 14px;
+
+    background: #17191f;
+
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 13px;
+}
+
+.score-ring {
+    width: 54px;
+    height: 54px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    border-radius: 50%;
+
+    background:
+        radial-gradient(circle,
+            #17191f 56%,
+            transparent 58%);
+
+    border: 3px solid #555b66;
+
+    box-sizing: border-box;
+}
+
+.score-ring span {
+    color: #e5e7ea;
+
+    font-size: 14px;
+    font-weight: 650;
+}
+
+.security-score>div:last-child {
+    display: flex;
+    flex-direction: column;
+
+    gap: 4px;
+}
+
+.security-score strong {
+    color: #e4e6e9;
+
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.security-score span:not(.score-ring span) {
+    color: #727783;
+
+    font-size: 10px;
+}
+
+
+/* ---------------------------------------------------------
+   Findings
+   --------------------------------------------------------- */
+
+.security-findings {
+    display: flex;
+    flex-direction: column;
+
+    gap: 7px;
+}
+
+.security-finding {
+    display: flex;
+    align-items: center;
+
+    gap: 11px;
+
+    min-height: 58px;
+
+    padding: 10px 12px;
+
+    background: #17191f;
+
+    border: 1px solid rgba(255, 255, 255, 0.055);
+    border-radius: 10px;
+
+    transition:
+        background 0.18s ease,
+        border-color 0.18s ease,
+        transform 0.18s ease;
+}
+
+.security-finding:hover {
+    background: #1b1e24;
+    border-color: rgba(255, 255, 255, 0.09);
+
+    transform: translateX(2px);
+}
+
+.finding-indicator {
+    width: 6px;
+    height: 6px;
+
+    flex-shrink: 0;
+
+    border-radius: 50%;
+}
+
+.security-finding.high .finding-indicator {
+    background: #d97878;
+}
+
+.security-finding.medium .finding-indicator {
+    background: #b99b69;
+}
+
+.finding-content {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 3px;
+}
+
+.finding-content strong {
+    color: #dfe1e5;
+
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.finding-content span {
+    color: #707682;
+
+    font-size: 9px;
+    line-height: 1.4;
+}
+
+.finding-severity {
+    margin-left: auto;
+
+    flex-shrink: 0;
+
+    font-size: 8px;
+    font-weight: 700;
+
+    letter-spacing: 0.08em;
+}
+
+.security-finding.high .finding-severity {
+    color: #d97878;
+}
+
+.security-finding.medium .finding-severity {
+    color: #b99b69;
+}
+
+
+/* ---------------------------------------------------------
+   Security policy
+   --------------------------------------------------------- */
+
+.security-output {
+    grid-column: 1 / -1;
+
+    margin-top: 25px;
+
+    padding-top: 25px;
+
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.policy-card {
+    background: #17191f;
+
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 13px;
+
+    overflow: hidden;
+}
+
+.policy-header {
+    min-height: 50px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 16px;
+
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.policy-header>span:first-child {
+    color: #cfd2d7;
+
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.policy-badge {
+    padding: 5px 7px;
+
+    background: rgba(255, 255, 255, 0.045);
+
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 5px;
+
+    color: #858b97;
+
+    font-size: 8px;
+    font-weight: 700;
+
+    letter-spacing: 0.08em;
+}
+
+.policy-rule {
+    display: flex;
+    align-items: center;
+
+    gap: 10px;
+
+    padding: 12px 16px;
+
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+
+    color: #aeb2ba;
+
+    font-size: 10px;
+}
+
+.policy-rule:last-child {
+    border-bottom: none;
+}
+
+.policy-check {
+    width: 17px;
+    height: 17px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    border-radius: 5px;
+
+    background: rgba(255, 255, 255, 0.055);
+
+    color: #d7d9de;
+
+    font-size: 9px;
+}
+
+
+/* ---------------------------------------------------------
+   Workflow
+   --------------------------------------------------------- */
+
+.security-workflow {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto 1fr;
+
+    align-items: center;
+
+    margin-top: 50px;
+}
+
+.workflow-step {
+    text-align: center;
+
+    padding: 0 18px;
+}
+
+.workflow-number {
+    display: block;
+
+    margin-bottom: 12px;
+
+    color: #656b76;
+
+    font-size: 10px;
+    font-weight: 700;
+
+    letter-spacing: 0.12em;
+}
+
+.workflow-step strong {
+    display: block;
+
+    color: #e4e6e9;
+
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.workflow-step p {
+    max-width: 230px;
+
+    margin: 8px auto 0;
+
+    color: #707682;
+
+    font-size: 11px;
+    line-height: 1.55;
+}
+
+.workflow-line {
+    width: 50px;
+    height: 1px;
+
+    background: rgba(255, 255, 255, 0.08);
+}
+
+
+/* ---------------------------------------------------------
+   Subtle entrance / hover treatment
+   --------------------------------------------------------- */
+
+.security-workstation {
+    transition:
+        border-color 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+.security-workstation:hover {
+    border-color: rgba(255, 255, 255, 0.11);
+
+    box-shadow:
+        0 35px 90px rgba(0, 0, 0, 0.42),
+        0 0 0 1px rgba(255, 255, 255, 0.018);
+}
+
+
+/* ---------------------------------------------------------
+   Responsive
+   --------------------------------------------------------- */
+
+@media (max-width: 900px) {
+
+    .security-analyzer {
+        padding: 110px 25px 120px;
+    }
+
+    .security-workstation-body {
+        grid-template-columns: 1fr;
+    }
+
+    .security-agent {
+        padding-right: 0;
+        padding-bottom: 25px;
+
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .security-analysis {
+        padding-left: 0;
+        padding-top: 25px;
+    }
+
+    .security-output {
+        margin-top: 25px;
+    }
+
+    .security-workflow {
+        grid-template-columns: 1fr;
+
+        gap: 25px;
+    }
+
+    .workflow-line {
+        width: 1px;
+        height: 25px;
+
+        margin: 0 auto;
+    }
+}
+
+
+@media (max-width: 600px) {
+
+    .security-analyzer {
+        padding: 90px 18px 100px;
+    }
+
+    .security-analyzer-heading {
+        margin-bottom: 40px;
+    }
+
+    .security-analyzer-heading h2 {
+        font-size: 34px;
+    }
+
+    .security-analyzer-heading p {
+        font-size: 13px;
+    }
+
+    .security-workstation-header {
+        padding: 0 15px;
+    }
+
+    .security-workstation-body {
+        padding: 18px;
+    }
+
+    .security-status {
+        display: none;
+    }
+
+    .agent-card {
+        padding: 14px;
+    }
+
+    .security-finding {
+        align-items: flex-start;
+    }
+
+    .finding-severity {
+        margin-top: 2px;
+    }
+
+    .policy-rule {
+        align-items: flex-start;
+    }
+
+    .workflow-step {
+        padding: 0 5px;
     }
 }

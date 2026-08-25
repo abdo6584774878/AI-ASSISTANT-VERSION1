@@ -1864,50 +1864,187 @@ function initializeDashboard(user) {
 }
 
 function initializeLogout() {
-    const userAccount = document.querySelector(".user-account");
-    const userMenu = document.querySelector(".user-menu");
-    const userDropdown = document.getElementById("user-dropdown");
-    const logoutButton = document.getElementById("logout-button");
 
-    if (!userAccount || !userMenu || !userDropdown) {
-        console.warn("User account elements not found.");
+    const userAccount =
+        document.querySelector(".user-account");
+
+    const userMenu =
+        document.querySelector(".user-menu");
+
+    const dropdown =
+        document.querySelector("#user-dropdown");
+
+    const logoutButton =
+        document.querySelector("#logout-button");
+    
+    const accountButton = document.getElementById("account-button");
+
+    const settingsMenuButton  = document.getElementById("settings-button")
+
+    if (!userAccount || !userMenu || !dropdown) {
         return;
     }
 
-    // Open / close dropdown
-    userMenu.addEventListener("click", (event) => {
-        event.stopPropagation();
+    /* -----------------------------------------
+       Open / close helpers
+       ----------------------------------------- */
 
-        const isOpen = !userDropdown.hidden;
+    function openDropdown() {
 
-        userDropdown.hidden = isOpen;
+        dropdown.hidden = false;
+
+        requestAnimationFrame(() => {
+            dropdown.classList.add("is-open");
+        });
+
         userMenu.setAttribute(
             "aria-expanded",
-            isOpen ? "false" : "true"
+            "true"
         );
-    });
+    }
 
-    // Prevent clicks inside dropdown from reaching document
-    userDropdown.addEventListener("click", (event) => {
-        event.stopPropagation();
-    });
+    function closeDropdown() {
 
-    // Close when clicking anywhere outside
-    document.addEventListener("click", () => {
-        if (!userDropdown.hidden) {
-            userDropdown.hidden = true;
+        dropdown.classList.remove("is-open");
 
-            userMenu.setAttribute(
-                "aria-expanded",
-                "false"
-            );
+        userMenu.setAttribute(
+            "aria-expanded",
+            "false"
+        );
+
+        setTimeout(() => {
+
+            if (
+                !dropdown.classList.contains("is-open")
+            ) {
+                dropdown.hidden = true;
+            }
+
+        }, 180);
+    }
+
+    function toggleDropdown() {
+
+        const isOpen =
+            dropdown.classList.contains("is-open");
+
+        if (isOpen) {
+            closeDropdown();
+        } else {
+            openDropdown();
         }
-    });
+    }
 
-    // Logout
+    /* -----------------------------------------
+       User button
+       ----------------------------------------- */
+
+    userMenu.addEventListener(
+        "click",
+        (event) => {
+
+            event.stopPropagation();
+
+            toggleDropdown();
+        }
+    );
+
+    /* -----------------------------------------
+       Prevent dropdown clicks from
+       triggering outside-click
+       ----------------------------------------- */
+
+    dropdown.addEventListener(
+        "click",
+        (event) => {
+            event.stopPropagation();
+        }
+    );
+
+    /* -----------------------------------------
+       Click outside → close
+       ----------------------------------------- */
+
+    document.addEventListener(
+        "click",
+        () => {
+            closeDropdown();
+        }
+    );
+
+    /* -----------------------------------------
+       Escape → close
+       ----------------------------------------- */
+
+    document.addEventListener(
+        "keydown",
+        (event) => {
+
+            if (event.key === "Escape") {
+
+                closeDropdown();
+
+                userMenu.focus();
+            }
+        }
+    );
+
+    /* -----------------------------------------
+       Account
+       ----------------------------------------- */
+
+    const accountMenuButton =
+        dropdown.querySelector(
+            ".user-dropdown-item:nth-child(1)"
+        );
+
+    if (accountMenuButton) {
+
+        accountMenuButton.addEventListener(
+            "click",
+            () => {
+
+                window.location.href =
+                    "account.html";
+            }
+        );
+    }
+
+    /* -----------------------------------------
+       Settings
+       ----------------------------------------- */
+
+    const settingsButton =
+        dropdown.querySelector(
+            ".user-dropdown-item:nth-child(2)"
+        );
+
+    if (settingsButton) {
+
+        settingsButton.addEventListener(
+            "click",
+            () => {
+
+                window.location.href =
+                    "settings.html";
+            }
+        );
+    }
+
+    /* -----------------------------------------
+       Logout
+       ----------------------------------------- */
+
     if (logoutButton) {
-        logoutButton.addEventListener("click", async () => {
-            await logout();
-        });
+
+        logoutButton.addEventListener(
+            "click",
+            async () => {
+
+                closeDropdown();
+
+                await logout();
+            }
+        );
     }
 }

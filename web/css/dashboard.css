@@ -1314,3 +1314,153 @@ a {
 .user-dropdown-item.logout-button:hover {
     background: rgba(255, 80, 80, 0.08);
 }
+
+/* =========================================
+   USER ACCOUNT
+   ========================================= */
+
+.user-account {
+    position: relative;
+}
+
+/* -----------------------------------------
+   Dropdown
+   ----------------------------------------- */
+
+.user-dropdown {
+    position: absolute;
+    left: 0;
+    bottom: calc(100% + 10px);
+
+    width: 230px;
+    padding: 8px;
+
+    background: #17191f;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+
+    box-shadow:
+        0 18px 40px rgba(0, 0, 0, 0.35),
+        0 4px 12px rgba(0, 0, 0, 0.15);
+
+    z-index: 1000;
+    box-sizing: border-box;
+
+    /* Animation starting state */
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(8px) scale(0.98);
+
+    transform-origin: bottom left;
+
+    transition:
+        opacity 0.18s ease,
+        transform 0.18s ease,
+        visibility 0.18s ease;
+}
+
+/* Open state */
+
+.user-dropdown.is-open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+}
+
+/*
+ * IMPORTANT:
+ * hidden is still used by JavaScript,
+ * but we override it only when the dropdown
+ * has the open class.
+ */
+
+.user-dropdown[hidden] {
+    display: block;
+}
+
+/* -----------------------------------------
+   Dropdown items
+   ----------------------------------------- */
+
+.user-dropdown-item {
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    padding: 11px 12px;
+
+    border: none;
+    border-radius: 9px;
+
+    background: transparent;
+    color: #e8e9ed;
+
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+
+    text-align: left;
+
+    cursor: pointer;
+
+    transition:
+        background 0.15s ease,
+        color 0.15s ease,
+        transform 0.15s ease;
+}
+
+.user-dropdown-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.user-dropdown-item:active {
+    transform: scale(0.98);
+}
+
+.user-dropdown-item:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.2);
+    outline-offset: -2px;
+}
+
+/* -----------------------------------------
+   Icons
+   ----------------------------------------- */
+
+.dropdown-icon {
+    width: 20px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 16px;
+
+    opacity: 0.85;
+}
+
+/* -----------------------------------------
+   Divider
+   ----------------------------------------- */
+
+.dropdown-divider {
+    height: 1px;
+
+    margin: 6px 4px;
+
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* -----------------------------------------
+   Logout
+   ----------------------------------------- */
+
+.user-dropdown-item.logout-button {
+    color: #ff7d7d;
+}
+
+.user-dropdown-item.logout-button:hover {
+    background: rgba(255, 80, 80, 0.08);
+    color: #ff8f8f;
+}
