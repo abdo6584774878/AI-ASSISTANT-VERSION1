@@ -12,20 +12,26 @@ from fastapi.middleware.cors import CORSMiddleware
 import secrets
 from datetime import datetime, timedelta, timezone
 
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
 
-app = FastAPI(
+app = FastAPI(   
     title="AI Assistant API",
     version="0.1.0",
 )
 SESSION_COOKIE_NAME = "session"
+GOOGLE_CLIENT_ID = (
+    "387036885060-snlc449ir2iri9aua9i9p0ia8oi4h0s7.apps.googleusercontent.com"
+)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        "http://localhost:8000",
         "http://127.0.0.1:8000",
     ],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type"],
 )
 
 @app.on_event("startup")
@@ -97,6 +103,10 @@ class LoginRequest(BaseModel):
     remember: bool = False
 class PlanRequest(BaseModel):
     plan: str
+
+
+class GoogleAuthRequest(BaseModel):
+    credential: str
 
 
 @app.post("/api/auth/login")
@@ -241,6 +251,145 @@ def get_current_user(
 
     return {
         "success": True,
+        "user": {
+            "id": user["id"],
+            "name": user["name"],
+            "email": user["email"],
+            "plan": user["plan"],
+        },
+    }
+
+
+@app.post("/api/auth/google")
+def google_auth(
+    data: GoogleAuthRequest,
+    response: Response,
+):
+    # ---------------------------------------------------------
+    # VERIFY GOOGLE ID TOKEN
+    # ---------------------------------------------------------
+
+    try:
+        google_user = id_token.verify_oauth2_token(
+            data.credential,
+            google_requests.Request(),
+            GOOGLE_CLIENT_ID,
+        )
+
+    except ValueError:
+        return {
+            "success": False,
+            "message": "Invalid Google credential.",
+        }
+
+    # ---------------------------------------------------------
+    # EXTRACT VERIFIED GOOGLE DATA
+    # ---------------------------------------------------------
+
+    google_id = google_user.get("sub")
+    email = google_user.get("email")
+    name = google_user.get("name")
+
+    email_verified = google_user.get(
+        "email_verified",
+        False,
+    )
+
+    # ---------------------------------------------------------
+    # BASIC VALIDATION
+    # ---------------------------------------------------------
+
+    if not google_id or not email:
+        return {
+            "success": False,
+            "message": "Google account information is incomplete.",
+        }
+
+    if not email_verified:
+        return {
+            "success": False,
+            "message": "Google email is not verified.",
+        }
+
+    email = email.lower().strip()
+
+    # ---------------------------------------------------------
+    # DATABASE
+    # ---------------------------------------------------------
+
+    connection = get_connection()
+
+    # Look for an existing account
+    user = connection.execute(
+        """
+        SELECT id, name, email, plan
+        FROM users
+        WHERE email = ?
+        """,
+        (email,),
+    ).fetchone()
+
+    # ---------------------------------------------------------
+    # CREATE USER IF IT DOESN'T EXIST
+    # ---------------------------------------------------------
+
+    if not user:
+
+        connection.execute(
+            """
+            INSERT INTO users (
+                name,
+                email,
+                password_hash
+            )
+            VALUES (?, ?, ?)
+            """,
+            (
+                name or email.split("@")[0],
+                email,
+                None,
+            ),
+        )
+
+        connection.commit()
+
+        user = connection.execute(
+            """
+            SELECT id, name, email, plan
+            FROM users
+            WHERE email = ?
+            """,
+            (email,),
+        ).fetchone()
+
+    connection.close()
+
+    # ---------------------------------------------------------
+    # CREATE YOUR NORMAL SESSION
+    # ---------------------------------------------------------
+
+    session_token = create_session(user["id"])
+
+    # ---------------------------------------------------------
+    # SET HTTPONLY SESSION COOKIE
+    # ---------------------------------------------------------
+
+    response.set_cookie(
+        key=SESSION_COOKIE_NAME,
+        value=session_token,
+        httponly=True,
+        samesite="lax",
+        secure=False,  # True in production with HTTPS
+        max_age=60 * 60 * 24 * 30,
+    )
+
+    # ---------------------------------------------------------
+    # RETURN USER
+    # ---------------------------------------------------------
+
+    return {
+        "success": True,
+        "message": "Google authentication successful.",
         "user": {
             "id": user["id"],
             "name": user["name"],

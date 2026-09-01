@@ -18,7 +18,7 @@ def initialize_database():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             email TEXT NOT NULL UNIQUE,
-            password_hash TEXT NOT NULL,
+            password_hash TEXT,
             plan TEXT DEFAULT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -35,8 +35,6 @@ def initialize_database():
         )
     """)
 
-    # Add the plan column to existing databases that were
-    # created before subscription plans existed.
     columns = connection.execute("PRAGMA table_info(users)").fetchall()
 
     column_names = [column["name"] for column in columns]
@@ -44,7 +42,7 @@ def initialize_database():
     if "plan" not in column_names:
         connection.execute("""
             ALTER TABLE users
-            ADD COLUMN plan TEXT NOT NULL DEFAULT 'free'
+            ADD COLUMN plan TEXT DEFAULT NULL
         """)
 
     connection.commit()

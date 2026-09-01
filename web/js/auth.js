@@ -18,6 +18,7 @@
  */
 
 console.log("🔥 AUTH.JS LOADED");
+const API_BASE_URL = "http://127.0.0.1:8001";
 
 "use strict";
 
@@ -382,7 +383,7 @@ async function handleLogin(form) {
 async function submitLogin(loginData) {
 
     const response = await fetch(
-        "http://127.0.0.1:8001/api/auth/login",
+        `${API_BASE_URL}/api/auth/login`,
         {
             method: "POST",
 
@@ -441,29 +442,27 @@ async function submitLogin(loginData) {
  * GOOGLE INITIALIZATION
  * ========================================================= */
 
+let googleAuthInitialized = false;
+
 function initializeGoogleWhenReady() {
+
+    if (googleAuthInitialized) {
+        return;
+    }
 
     if (
         typeof google !== "undefined" &&
         google.accounts &&
         google.accounts.id
     ) {
-
         initializeGoogleAuth();
-
         return;
     }
 
-
-    /*
-     * Google library hasn't finished loading.
-     * Wait a little and try again.
-     */
     setTimeout(
         initializeGoogleWhenReady,
         100
     );
-
 }
 
 
@@ -710,7 +709,7 @@ async function handleSignup(form) {
 async function submitSignup(signupData) {
 
     const response = await fetch(
-        "http://127.0.0.1:8001/api/auth/signup",
+        `${API_BASE_URL}/api/auth/signup`,
         {
             method: "POST",
 
@@ -1055,48 +1054,32 @@ const GOOGLE_CLIENT_ID =
  */
 function initializeGoogleAuth() {
 
-    /*
-     * Google Identity Services may still be
-     * loading because its script is async.
-     */
+    if (googleAuthInitialized) {
+        return;
+    }
+
     if (
         typeof google === "undefined" ||
         !google.accounts ||
         !google.accounts.id
     ) {
-
         console.warn(
             "Google Identity Services is not loaded yet."
         );
-
         return;
     }
 
+    googleAuthInitialized = true;
 
-    /*
-     * Configure Google Identity Services.
-     */
     google.accounts.id.initialize({
-
         client_id: GOOGLE_CLIENT_ID,
-
-        callback:
-            handleGoogleCredential
-
+        callback: handleGoogleCredential
     });
 
-
-    /*
-     * Login page.
-     */
     const googleLogin =
-        document.getElementById(
-            "googleLogin"
-        );
-
+        document.getElementById("googleLogin");
 
     if (googleLogin) {
-
         google.accounts.id.renderButton(
             googleLogin,
             {
@@ -1109,21 +1092,12 @@ function initializeGoogleAuth() {
                 width: 360
             }
         );
-
     }
 
-
-    /*
-     * Signup page.
-     */
     const googleSignup =
-        document.getElementById(
-            "googleSignup"
-        );
-
+        document.getElementById("googleSignup");
 
     if (googleSignup) {
-
         google.accounts.id.renderButton(
             googleSignup,
             {
@@ -1136,9 +1110,7 @@ function initializeGoogleAuth() {
                 width: 360
             }
         );
-
     }
-
 }
 
 
@@ -1151,124 +1123,140 @@ function initializeGoogleAuth() {
  *
  * @param {Object} response
  */
-function handleGoogleCredential(response) {
+async function handleGoogleCredential(response) {
 
-    if (
-        !response ||
-        !response.credential
-    ) {
-
+    if (!response || !response.credential) {
         console.error(
             "Google authentication returned no credential."
         );
-
         return;
     }
 
+    console.log("🔥 Google credential received.");
 
-    /*
-     * The credential is an ID token.
-     *
-     * IMPORTANT:
-     * Do NOT trust decoded client-side data
-     * for authentication.
-     *
-     * The backend must verify this token.
-     */
-    console.log(
-        "Google authentication successful."
-    );
+    try {
 
+        const result = await submitGoogleCredential(
+            response.credential
+        );
 
-    /*
-     * Temporary frontend-only inspection.
-     *
-     * We will replace this with:
-     *
-     * POST /api/auth/google
-     *
-     * once your backend authentication
-     * endpoint is ready.
-     */
-    console.log(
-        "Google credential received."
-    );
+        if (!result.success || !result.user) {
+            throw new Error(
+                result.message ||
+                "Google authentication failed."
+            );
+        }
 
+        currentUser = result.user;
+        isAuthenticated = true;
 
-    /*
-     * DO NOT do this in production:
-     *
-     * console.log(response.credential);
-     *
-     * The ID token should be sent securely
-     * to your backend instead.
-     */
+        console.log(
+            "🔥 Google authentication successful:",
+            result.user
+        );
 
+        if (result.user.plan === null) {
 
-    submitGoogleCredential(
-        response.credential
-    );
+            window.location.href = "pricing.html";
 
+        } else {
+
+            window.location.href = "dashboard.html";
+
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Google authentication failed:",
+            error
+        );
+
+        alert(
+            error.message ||
+            "Google authentication failed."
+        );
+    }
 }
 
 
-/* =========================================================
- * GOOGLE BACKEND SUBMISSION
- * ========================================================= */
+async function submitGoogleCredential(credential) {
 
-/**
- * Temporary Google authentication submission.
- *
- * This will eventually send the Google ID token
- * to the backend.
- *
- * @param {string} credential
- */
-async function submitGoogleCredential(
-    credential
-) {
+    console.log("🔥 submitGoogleCredential ENTERED");
+    console.log("🔥 API_BASE_URL =", API_BASE_URL);
 
-    /*
-     * Temporary frontend implementation.
-     */
-    console.log(
-        "Google credential ready for backend."
-    );
+    try {
 
+        console.log("🔥 BEFORE FETCH");
+        console.log(
+            "🔥 URL =",
+            `${API_BASE_URL}/api/auth/google`
+        );
+        console.log(
+            "🔥 CREDENTIAL LENGTH =",
+            credential?.length
+        );
+        console.log(
+            "🔥 FETCH TYPE =",
+            typeof fetch
+        );
+        console.log(
+            "🔥 SAME AS WINDOW.FETCH =",
+            fetch === window.fetch
+        );
 
-    /*
-     * Future backend implementation:
-     *
-     * const response = await fetch(
-     *     "/api/auth/google",
-     *     {
-     *         method: "POST",
-     *
-     *         headers: {
-     *             "Content-Type":
-     *                 "application/json"
-     *         },
-     *
-     *         body: JSON.stringify({
-     *             credential
-     *         })
-     *     }
-     * );
-     *
-     * const data =
-     *     await response.json();
-     *
-     * if (!response.ok) {
-     *
-     *     throw new Error(
-     *         data.message ||
-     *         "Google authentication failed."
-     *     );
-     * }
-     *
-     * window.location.href =
-     *     "dashboard.html";
-     */
+        const response = await fetch(
+            `${API_BASE_URL}/api/auth/google`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                credentials: "include",
+                body: JSON.stringify({
+                    credential: credential
+                })
+            }
+        );
+
+        console.log(
+            "🔥 GOOGLE FETCH FINISHED:",
+            response.status
+        );
+
+        const data = await response.json();
+
+        console.log(
+            "🔥 GOOGLE RESPONSE:",
+            data
+        );
+
+        if (!response.ok) {
+            throw new Error(
+                data.detail?.[0]?.msg ||
+                data.message ||
+                "Google authentication failed."
+            );
+        }
+
+        if (!data.success) {
+            throw new Error(
+                data.message ||
+                "Google authentication failed."
+            );
+        }
+
+        return data;
+
+    } catch (error) {
+
+        console.error(
+            "🔥 GOOGLE AUTH ERROR =",
+            error
+        );
+
+        throw error;
+    }
 }
 
 
@@ -1716,7 +1704,7 @@ async function loadAuthState() {
     try {
 
         const response = await fetch(
-            "http://127.0.0.1:8001/api/auth/me",
+            `${API_BASE_URL}/api/auth/me`,
             {
                 method: "GET",
                 credentials: "include"
@@ -1768,7 +1756,7 @@ async function loadAuthState() {
 async function logout() {
     try {
         const response = await fetch(
-            "http://127.0.0.1:8001/api/auth/logout",
+            `${API_BASE_URL}/api/auth/logout`,
             {
                 method: "POST",
                 credentials: "include"
@@ -1799,7 +1787,7 @@ async function logout() {
 async function requireAuthentication() {
     try {
         const response = await fetch(
-            "http://127.0.0.1:8001/api/auth/me",
+            `${API_BASE_URL}/api/auth/me`,
             {
                 method: "GET",
                 credentials: "include"
