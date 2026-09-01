@@ -1865,9 +1865,9 @@ function initializeLogout() {
     const logoutButton =
         document.querySelector("#logout-button");
     
-    const accountButton = document.getElementById("account-button");
+    const accountButton = dropdown.querySelector(".user-dropdown-item:nth-child(1)");
 
-    const settingsMenuButton  = document.getElementById("settings-button")
+    const settingsMenuButton  = dropdown.querySelector(".user-dropdown-item:nth-child(2)");
 
     if (!userAccount || !userMenu || !dropdown) {
         return;
@@ -1981,42 +1981,21 @@ function initializeLogout() {
        Account
        ----------------------------------------- */
 
-    const accountMenuButton =
-        dropdown.querySelector(
-            ".user-dropdown-item:nth-child(1)"
-        );
-
-    if (accountMenuButton) {
-
-        accountMenuButton.addEventListener(
-            "click",
-            () => {
-
-                window.location.href =
-                    "account.html";
-            }
-        );
+    if (accountButton) {
+        accountButton.addEventListener("click", () => {
+            window.location.href = "account.html";
+        });
     }
+
 
     /* -----------------------------------------
        Settings
        ----------------------------------------- */
 
-    const settingsButton =
-        dropdown.querySelector(
-            ".user-dropdown-item:nth-child(2)"
-        );
-
-    if (settingsButton) {
-
-        settingsButton.addEventListener(
-            "click",
-            () => {
-
-                window.location.href =
-                    "settings.html";
-            }
-        );
+    if (settingsMenuButton) {
+        settingsMenuButton.addEventListener("click", () => {
+            window.location.href = "settings.html";
+        });
     }
 
     /* -----------------------------------------

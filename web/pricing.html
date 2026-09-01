@@ -127,7 +127,7 @@
                 </p>
 
 
-                <a href="dashboard.html" class="plan-button" data-plan="free">
+                <a href="#" class="plan-button" data-plan="free">
                     Get started
                 </a>
 
@@ -426,12 +426,14 @@
 
     <script>
 
+        const API_BASE_URL = "http://127.0.0.1:8001";
+
         async function checkPlan() {
 
                 try {
 
                     const response = await fetch(
-                        "http://127.0.0.1:8001/api/auth/me",
+                        `${API_BASE_URL}/api/auth/me`,
                         {
                             credentials: "include"
                         }
@@ -576,7 +578,7 @@
                         button.textContent = "Selecting...";
 
                         const response = await fetch(
-                            "http://127.0.0.1:8001/api/auth/plan",
+                            `${API_BASE_URL}/api/auth/plan`,
                             {
                                 method: "POST",
                                 credentials: "include",
