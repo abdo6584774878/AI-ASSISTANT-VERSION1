@@ -13,7 +13,9 @@ import secrets
 from datetime import datetime, timedelta, timezone
 
 from google.oauth2 import id_token
-from google.auth.transport import requests as google_requests
+from google.auth.transport import requests as google_requests 
+
+from assistant.assistant import AIAssistant
 
 app = FastAPI(   
     title="AI Assistant API",
@@ -107,6 +109,10 @@ class PlanRequest(BaseModel):
 
 class GoogleAuthRequest(BaseModel):
     credential: str
+
+
+class ChatRequest(BaseModel):
+    message: str
 
 
 @app.post("/api/auth/login")
@@ -540,6 +546,55 @@ def create_session(user_id):
     return session_token
 
 
+def get_authenticated_user(request: Request):
+    session_token = request.cookies.get(SESSION_COOKIE_NAME)
+
+    if not session_token:
+        return None
+
+    connection = get_connection()
+
+    session = connection.execute(
+        """
+        SELECT user_id, expires_at
+        FROM sessions
+        WHERE session_token = ?
+        """,
+        (session_token,),
+    ).fetchone()
+
+    if not session:
+        connection.close()
+        return None
+
+    expires_at = datetime.fromisoformat(session["expires_at"])
+
+    if expires_at <= datetime.now(timezone.utc):
+        connection.execute(
+            """
+            DELETE FROM sessions
+            WHERE session_token = ?
+            """,
+            (session_token,),
+        )
+        connection.commit()
+        connection.close()
+        return None
+
+    user = connection.execute(
+        """
+        SELECT id, name, email, plan
+        FROM users
+        WHERE id = ?
+        """,
+        (session["user_id"],),
+    ).fetchone()
+
+    connection.close()
+
+    return user
+
+
 @app.post("/api/auth/logout")
 def logout(request: Request, response: Response):
 
@@ -570,3 +625,41 @@ def logout(request: Request, response: Response):
         "success": True,
         "message": "Logout successful.",
     }
+
+
+@app.post("/api/chat")
+def chat(data: ChatRequest, request: Request):
+    user = get_authenticated_user(request)
+
+    if not user:
+        return {
+            "success": False,
+            "message": "Not authenticated.",
+        }
+
+    message = data.message.strip()
+
+    if not message:
+        return {
+            "success": False,
+            "message": "Message cannot be empty.",
+        }
+
+    try:
+        assistant = AIAssistant(user["id"])
+
+        response_text = assistant.send_message(message)
+
+        return {
+            "success": True,
+            "response": response_text,
+            "conversation_id": assistant.get_current_conversation_id(),
+        }
+
+    except Exception as error:
+        print(f"Chat error: {error}")
+
+        return {
+            "success": False,
+            "message": "An error occurred while processing your message.",
+        }

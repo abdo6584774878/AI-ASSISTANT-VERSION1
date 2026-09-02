@@ -18,15 +18,20 @@ logger = logging.getLogger(__name__)
 
 
 class AIAssistant(BaseAssistant):
-    def __init__(self):
+    def __init__(self, user_id):
         api_key = os.getenv("GEMINI_API_KEY")
+
+        self.user_id = user_id
         self.client = genai.Client(api_key=api_key)
-        self.memory = Memory()
+        self.memory = Memory(user_id)
+
         conversation = self.memory.get_latest_conversation()
+
         if conversation is None:
             self.conversation_id = self.memory.create_conversation("New Conversation")
         else:
             self.conversation_id = conversation[0]
+
         self._create_chat()
 
     def _create_chat(self):
