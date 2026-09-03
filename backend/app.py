@@ -113,6 +113,7 @@ class GoogleAuthRequest(BaseModel):
 
 class ChatRequest(BaseModel):
     message: str
+    conversation_id: str | None = None
 
 
 @app.post("/api/auth/login")
@@ -626,6 +627,253 @@ def logout(request: Request, response: Response):
         "message": "Logout successful.",
     }
 
+# ============================================================
+# CONVERSATIONS
+# ============================================================
+
+
+class CreateConversationRequest(BaseModel):
+    title: str = "New Conversation"
+
+
+class RenameConversationRequest(BaseModel):
+    title: str
+
+
+@app.get("/api/conversations")
+def get_conversations(request: Request):
+    user = get_authenticated_user(request)
+
+    if not user:
+        return {
+            "success": False,
+            "message": "Not authenticated.",
+        }
+
+    try:
+        assistant = AIAssistant(user["id"])
+        conversations = assistant.list_conversations()
+
+        return {
+            "success": True,
+            "conversations": [
+                {
+                    "id": conversation[0],
+                    "title": conversation[1],
+                    "created_at": conversation[2],
+                }
+                for conversation in conversations
+            ],
+        }
+
+    except Exception as error:
+        print(f"Get conversations error: {error}")
+
+        return {
+            "success": False,
+            "message": "Could not load conversations.",
+        }
+
+
+@app.post("/api/conversations")
+def create_conversation(
+    data: CreateConversationRequest,
+    request: Request,
+):
+    user = get_authenticated_user(request)
+
+    if not user:
+        return {
+            "success": False,
+            "message": "Not authenticated.",
+        }
+
+    try:
+        assistant = AIAssistant(user["id"])
+
+        title = data.title.strip() or "New Conversation"
+
+        conversation_id = assistant.create_new_conversation(title)
+
+        conversation = assistant.get_conversation(conversation_id)
+
+        return {
+            "success": True,
+            "conversation": {
+                "id": conversation[0],
+                "title": conversation[1],
+                "created_at": conversation[2],
+            },
+        }
+
+    except Exception as error:
+        print(f"Create conversation error: {error}")
+
+        return {
+            "success": False,
+            "message": "Could not create conversation.",
+        }
+
+
+@app.get("/api/conversations/{conversation_id}")
+def get_conversation(
+    conversation_id: int,
+    request: Request,
+):
+    user = get_authenticated_user(request)
+
+    if not user:
+        return {
+            "success": False,
+            "message": "Not authenticated.",
+        }
+
+    try:
+        assistant = AIAssistant(user["id"])
+
+        conversation = assistant.get_conversation(conversation_id)
+
+        if conversation is None:
+            return {
+                "success": False,
+                "message": "Conversation not found.",
+            }
+
+        messages = assistant.memory.get_messages(conversation_id)
+
+        return {
+            "success": True,
+            "conversation": {
+                "id": conversation[0],
+                "title": conversation[1],
+                "created_at": conversation[2],
+                "messages": [
+                    {
+                        "role": message[0],
+                        "content": message[1],
+                    }
+                    for message in messages
+                ],
+            },
+        }
+
+    except Exception as error:
+        print(f"Get conversation error: {error}")
+
+        return {
+            "success": False,
+            "message": "Could not load conversation.",
+        }
+
+
+@app.put("/api/conversations/{conversation_id}")
+def rename_conversation(
+    conversation_id: int,
+    data: RenameConversationRequest,
+    request: Request,
+):
+    user = get_authenticated_user(request)
+
+    if not user:
+        return {
+            "success": False,
+            "message": "Not authenticated.",
+        }
+
+    title = data.title.strip()
+
+    if not title:
+        return {
+            "success": False,
+            "message": "Conversation title cannot be empty.",
+        }
+
+    try:
+        assistant = AIAssistant(user["id"])
+
+        conversation = assistant.get_conversation(conversation_id)
+
+        if conversation is None:
+            return {
+                "success": False,
+                "message": "Conversation not found.",
+            }
+
+        #switch to the conversation we want to rename
+        switched, switch_message = assistant.switch_conversation(conversation_id)
+        if not switched:
+            return {
+                "success": False,
+                "message": switch_message,
+            }
+        
+        #now rename the conversation
+        assistant.rename_conversation(title)
+        
+        return {
+            "success": True,
+            "message": "Conversation renamed successfully.",
+            "conversation": {
+                "id": conversation_id,
+                "title": title,
+            },
+        }
+
+    except Exception as error:
+        print(f"Rename conversation error: {error}")
+
+        return {
+            "success": False,
+            "message": "Could not rename conversation.",
+        }
+
+
+@app.delete("/api/conversations/{conversation_id}")
+def delete_conversation(
+    conversation_id: int,
+    request: Request,
+):
+    user = get_authenticated_user(request)
+
+    if not user:
+        return {
+            "success": False,
+            "message": "Not authenticated.",
+        }
+
+    try:
+        assistant = AIAssistant(user["id"])
+
+        conversation = assistant.get_conversation(conversation_id)
+
+        if conversation is None:
+            return {
+                "success": False,
+                "message": "Conversation not found.",
+            }
+
+        deleted = assistant.delete_conversation(conversation_id)
+
+        if not deleted:
+            return {
+                "success": False,
+                "message": "Could not delete conversation.",
+            }
+
+        return {
+            "success": True,
+            "message": "Conversation deleted successfully.",
+            "conversation_id": conversation_id,
+        }
+
+    except Exception as error:
+        print(f"Delete conversation error: {error}")
+
+        return {
+            "success": False,
+            "message": "Could not delete conversation.",
+        }
+
 
 @app.post("/api/chat")
 def chat(data: ChatRequest, request: Request):
@@ -647,6 +895,31 @@ def chat(data: ChatRequest, request: Request):
 
     try:
         assistant = AIAssistant(user["id"])
+
+        # ----------------------------------------------------
+        # Switch to requested conversation
+        # ----------------------------------------------------
+
+        if data.conversation_id is not None:
+            try:
+                conversation_id = int(data.conversation_id)
+            except (TypeError, ValueError):
+                return {
+                    "success": False,
+                    "message": "Invalid conversation ID.",
+                }
+
+            switched, switch_message = assistant.switch_conversation(conversation_id)
+
+            if not switched:
+                return {
+                    "success": False,
+                    "message": switch_message,
+                }
+
+        # ----------------------------------------------------
+        # Send message
+        # ----------------------------------------------------
 
         response_text = assistant.send_message(message)
 

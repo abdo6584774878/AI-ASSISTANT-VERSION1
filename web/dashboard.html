@@ -30,16 +30,16 @@
 
                     <div class="nav-label">CHATBOT</div>
 
-                    <a href="#" class="nav-item active">
+                    <button type="button" class="nav-item active" id="new-chat-button">
                         <span>＋</span>
                         <span>New Chat</span>
-                    </a>
-
-                    <a href="#" class="nav-item">
+                    </button>
+                    
+                    <button type="button" class="nav-item" id="conversations-button">
                         <span>◷</span>
                         <span>Conversations</span>
-                    </a>
-
+                    </button>
+                    <div class="conversations-list" id="conversations-list"></div>
                     <div class="nav-divider"></div>
 
                     <a href="#" class="nav-item">
@@ -211,49 +211,54 @@
 
             <!-- CHATBOT WORKSPACE -->
             <section class="workspace" id="chatbot-workspace">
-
+            
                 <div class="workspace-content chatbot-home">
-
+            
                     <div class="workspace-heading">
-
+            
                         <span class="eyebrow">AI ASSISTANT</span>
-
+            
                         <h1>
                             What can I help
                             <span>you with?</span>
                         </h1>
-
+            
                         <p>
                             Your intelligent workspace for research,
                             development, analysis and everyday tasks.
                         </p>
-
+            
                     </div>
-
-
+                    
+                    <div id="chat-messages" class="chat-messages"></div>
+            
                     <div class="chat-input-card">
-
-                        <div class="chat-placeholder">
-                            Ask AI Assistant anything...
-                        </div>
-
-                        <button class="send-button">↑</button>
-
+                    
+                        <textarea id="chat-input" class="chat-input" placeholder="Ask AI Assistant anything..." rows="1"></textarea>
+                    
+                        <button id="send-button" class="send-button" type="button" aria-label="Send message">
+                            ↑
+                        </button>
+                    
                     </div>
-
-
+            
+            
                     <div class="quick-actions">
-
+            
                         <button>Explain something</button>
                         <button>Analyze code</button>
                         <button>Research a topic</button>
                         <button>Help me build</button>
-
+            
                     </div>
-
+            
                 </div>
-
+            
             </section>
+
+
+                    
+                    
 
 
             <!-- SECURITY WORKSPACE -->
