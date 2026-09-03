@@ -11,18 +11,21 @@
     <link rel="stylesheet" href="css/dashboard.css">
 
     <style>
-        html, body {
+        html,
+        body {
             min-height: 100%;
             height: auto !important;
             margin: 0;
             overflow-x: hidden;
             overflow-y: auto;
         }
-        .account-main{
+
+        .account-main {
             min-height: 100vh;
             height: auto !important;
             overflow: visible !important;
         }
+
         .account-page {
             max-width: 1000px;
             margin: 0 auto;
@@ -290,23 +293,162 @@
                 flex-direction: column;
             }
         }
-            body::-webkit-scrollbar {
-                width: 7px;
+
+        body::-webkit-scrollbar {
+            width: 7px;
+        }
+
+        body::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        body::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 999px;
+        }
+
+        body::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .account-field-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 7px;
+        }
+
+        .account-field-header label {
+            margin-bottom: 0;
+        }
+
+        .edit-name-button {
+            border: 0;
+            background: transparent;
+            color: #858b97;
+            font-family: inherit;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 4px 7px;
+            border-radius: 6px;
+            transition: color .18s ease, background .18s ease;
+        }
+
+        .edit-name-button:hover {
+            color: #f1f2f4;
+            background: rgba(255, 255, 255, .06);
+        }
+
+        .name-editor {
+            margin-top: 10px;
+        }
+
+        .name-editor.hidden {
+            display: none;
+        }
+
+        .name-editor-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .name-input {
+            flex: 1;
+            min-width: 0;
+            box-sizing: border-box;
+
+            padding: 11px 13px;
+
+            background: #111318;
+            border: 1px solid rgba(255, 255, 255, .1);
+            border-radius: 9px;
+
+            color: #f1f2f4;
+            font-family: inherit;
+            font-size: 13px;
+
+            outline: none;
+
+            transition:
+                border-color .18s ease,
+                box-shadow .18s ease;
+        }
+
+        .name-input:focus {
+            border-color: rgba(255, 255, 255, .2);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, .035);
+        }
+
+        .name-save-button,
+        .name-cancel-button {
+            flex-shrink: 0;
+
+            padding: 10px 13px;
+
+            border-radius: 9px;
+
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 600;
+
+            cursor: pointer;
+
+            transition:
+                background .18s ease,
+                border-color .18s ease,
+                color .18s ease,
+                transform .18s ease;
+        }
+
+        .name-save-button {
+            border: 1px solid rgba(255, 255, 255, .12);
+            background: rgba(255, 255, 255, .08);
+            color: #f1f2f4;
+        }
+
+        .name-save-button:hover {
+            background: rgba(255, 255, 255, .13);
+            transform: translateY(-1px);
+        }
+
+        .name-cancel-button {
+            border: 1px solid rgba(255, 255, 255, .06);
+            background: transparent;
+            color: #858b97;
+        }
+
+        .name-cancel-button:hover {
+            background: rgba(255, 255, 255, .04);
+            color: #dfe1e6;
+        }
+
+        .name-editor-message {
+            min-height: 16px;
+            margin-top: 7px;
+
+            color: #858b97;
+            font-size: 11px;
+        }
+
+        .name-editor-message.error {
+            color: #ff8585;
+        }
+
+        .name-editor-message.success {
+            color: #a7e8bd;
+        }
+
+        @media (max-width: 500px) {
+            .name-editor-row {
+                flex-wrap: wrap;
             }
 
-            body::-webkit-scrollbar-track {
-                background: transparent;
+            .name-input {
+                flex-basis: 100%;
             }
-
-            body::-webkit-scrollbar-thumb {
-                background: rgba(255, 255, 255, 0.12);
-                border-radius: 999px;
-            }
-
-            body::-webkit-scrollbar-thumb:hover {
-                background: rgba(255, 255, 255, 0.2);
-            }
-        
+        }
     </style>
 </head>
 
@@ -391,12 +533,35 @@
 
                     <div class="account-field">
 
-                        <label>Name</label>
+                        <div class="account-field-header">
+                            <label>Name</label>
+
+                            <button type="button" class="edit-name-button" id="edit-name-button">
+                                Edit
+                            </button>
+                        </div>
 
                         <div class="account-value" id="account-name">
                             Loading...
                         </div>
+                        <div class="name-editor hidden" id="name-editor">
+                            <div class="name-editor-row">
 
+                                <input type="text" id="name-input" class="name-input" maxlength="50" autocomplete="name"
+                                    placeholder="Enter your name">
+
+                                <button type="button" class="name-save-button" id="name-save-button">
+                                    Save
+                                </button>
+
+                                <button type="button" class="name-cancel-button" id="name-cancel-button">
+                                    Cancel
+                                </button>
+
+                            </div>
+
+                            <div class="name-editor-message" id="name-editor-message"></div>
+                        </div>
                     </div>
 
 
@@ -541,6 +706,8 @@
 
     <script>
 
+        let currentUserName = "";
+
         async function loadAccount() {
 
             try {
@@ -552,17 +719,14 @@
                     }
                 );
 
-                const data =
-                    await response.json();
+                const data = await response.json();
 
                 if (
                     !response.ok ||
                     !data.success ||
                     !data.user
                 ) {
-                    window.location.href =
-                        "login.html";
-
+                    window.location.href = "login.html";
                     return;
                 }
 
@@ -580,6 +744,8 @@
                 const plan =
                     user.plan ||
                     "Free";
+
+                currentUserName = name;
 
                 document.getElementById(
                     "profile-name"
@@ -622,6 +788,243 @@
             }
 
         }
+
+
+        function openNameEditor() {
+
+            const editor =
+                document.getElementById("name-editor");
+
+            const input =
+                document.getElementById("name-input");
+
+            const message =
+                document.getElementById(
+                    "name-editor-message"
+                );
+
+            input.value = currentUserName;
+
+            message.textContent = "";
+            message.className =
+                "name-editor-message";
+
+            editor.classList.remove("hidden");
+
+            input.focus();
+            input.select();
+
+        }
+
+
+        function closeNameEditor() {
+
+            const editor =
+                document.getElementById("name-editor");
+
+            const message =
+                document.getElementById(
+                    "name-editor-message"
+                );
+
+            editor.classList.add("hidden");
+
+            message.textContent = "";
+            message.className =
+                "name-editor-message";
+
+        }
+
+
+        async function saveName() {
+
+            const input =
+                document.getElementById("name-input");
+
+            const saveButton =
+                document.getElementById(
+                    "name-save-button"
+                );
+
+            const message =
+                document.getElementById(
+                    "name-editor-message"
+                );
+
+            const name =
+                input.value.trim();
+
+            if (!name) {
+
+                message.textContent =
+                    "Name cannot be empty.";
+
+                message.className =
+                    "name-editor-message error";
+
+                input.focus();
+
+                return;
+
+            }
+
+            if (name.length > 50) {
+
+                message.textContent =
+                    "Name must be 50 characters or fewer.";
+
+                message.className =
+                    "name-editor-message error";
+
+                input.focus();
+
+                return;
+
+            }
+
+            if (name === currentUserName) {
+
+                closeNameEditor();
+
+                return;
+
+            }
+
+            saveButton.disabled = true;
+            saveButton.textContent = "Saving...";
+
+            try {
+
+                const response = await fetch(
+                    "http://127.0.0.1:8001/api/auth/name",
+                    {
+                        method: "PUT",
+                        credentials: "include",
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+                        body: JSON.stringify({
+                            name: name
+                        })
+                    }
+                );
+
+                const data =
+                    await response.json();
+
+                if (
+                    !response.ok ||
+                    !data.success
+                ) {
+
+                    message.textContent =
+                        data.message ||
+                        "Could not update your name.";
+
+                    message.className =
+                        "name-editor-message error";
+
+                    return;
+
+                }
+
+                currentUserName = data.name;
+
+                document.getElementById(
+                    "profile-name"
+                ).textContent = data.name;
+
+                document.getElementById(
+                    "account-name"
+                ).textContent = data.name;
+
+                document.getElementById(
+                    "profile-avatar"
+                ).textContent =
+                    data.name
+                        .charAt(0)
+                        .toUpperCase();
+
+                message.textContent =
+                    "Name updated successfully.";
+
+                message.className =
+                    "name-editor-message success";
+
+                setTimeout(() => {
+                    closeNameEditor();
+                }, 700);
+
+            } catch (error) {
+
+                console.error(
+                    "Update name error:",
+                    error
+                );
+
+                message.textContent =
+                    "Unable to update your name.";
+
+                message.className =
+                    "name-editor-message error";
+
+            } finally {
+
+                saveButton.disabled = false;
+                saveButton.textContent = "Save";
+
+            }
+
+        }
+
+
+        document
+            .getElementById("edit-name-button")
+            .addEventListener(
+                "click",
+                openNameEditor
+            );
+
+
+        document
+            .getElementById("name-save-button")
+            .addEventListener(
+                "click",
+                saveName
+            );
+
+
+        document
+            .getElementById("name-cancel-button")
+            .addEventListener(
+                "click",
+                closeNameEditor
+            );
+
+
+        document
+            .getElementById("name-input")
+            .addEventListener(
+                "keydown",
+                (event) => {
+
+                    if (
+                        event.key === "Enter"
+                    ) {
+                        event.preventDefault();
+                        saveName();
+                    }
+
+                    if (
+                        event.key === "Escape"
+                    ) {
+                        closeNameEditor();
+                    }
+
+                }
+            );
+
 
         loadAccount();
 

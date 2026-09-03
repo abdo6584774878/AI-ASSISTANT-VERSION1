@@ -887,6 +887,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // ============================================================
 
     async function sendMessage() {
+       
+       
+       
         if (!chatInput) {
             return;
         }
@@ -897,7 +900,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!message) {
             return;
         }
-
+        const welcome = document.getElementById("chat-welcome");
+        if (welcome) {
+            welcome.classList.add("hidden");
+        }
         console.log(
             "📤 Sending message:",
             message

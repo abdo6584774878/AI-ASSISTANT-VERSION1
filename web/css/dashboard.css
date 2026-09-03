@@ -2096,3 +2096,10 @@ a {
     background: rgba(255, 255, 255, 0.08);
     color: var(--text);
 }
+
+.logo-image {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+    display: block;
+}

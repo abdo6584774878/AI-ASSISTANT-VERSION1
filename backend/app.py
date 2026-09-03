@@ -107,6 +107,10 @@ class PlanRequest(BaseModel):
     plan: str
 
 
+class UpdateNameRequest(BaseModel):
+    name: str
+
+
 class GoogleAuthRequest(BaseModel):
     credential: str
 
@@ -264,6 +268,68 @@ def get_current_user(
             "email": user["email"],
             "plan": user["plan"],
         },
+    }
+
+
+@app.put("/api/auth/name")
+def update_name(
+    data: UpdateNameRequest,
+    request: Request,
+):
+    user = get_authenticated_user(request)
+
+    if not user:
+        return {
+            "success": False,
+            "message": "Not authenticated.",
+        }
+
+    name = data.name.strip()
+
+    if not name:
+        return {
+            "success": False,
+            "message": "Name cannot be empty.",
+        }
+
+    if len(name) > 50:
+        return {
+            "success": False,
+            "message": "Name must be 50 characters or fewer.",
+        }
+
+    connection = get_connection()
+
+    try:
+        connection.execute(
+            """
+            UPDATE users
+            SET name = ?
+            WHERE id = ?
+            """,
+            (
+                name,
+                user["id"],
+            ),
+        )
+
+        connection.commit()
+
+    except Exception as error:
+        print(f"Update name error: {error}")
+        connection.close()
+
+        return {
+            "success": False,
+            "message": "Could not update your name.",
+        }
+
+    connection.close()
+
+    return {
+        "success": True,
+        "message": "Name updated successfully.",
+        "name": name,
     }
 
 
