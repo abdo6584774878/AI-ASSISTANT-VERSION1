@@ -61,6 +61,16 @@ RULES = {
         severity="critical",
         category="deserialization",
     ),
+    "SA-006": SecurityRule(
+        rule_id="SA-006",
+        title="Potential SQL Injection",
+        description=(
+            "The agent constructs SQL queries using potentially "
+            "untrusted or dynamically constructed input."
+        ),
+        severity="high",
+        category="sql-injection",
+    ),
 }
 
 

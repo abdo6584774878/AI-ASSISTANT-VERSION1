@@ -1,7 +1,8 @@
 import ast
 import re
 
-from .models import Finding, SecurityReport
+from .models import Finding
+from .findings import FindingEngine
 from .rules import get_rule
 from .parser import ParsedAgent, ParsedFile
 
@@ -9,19 +10,13 @@ from .parser import ParsedAgent, ParsedFile
 class SecurityScanner:
     """Performs deterministic static security analysis."""
 
-    def scan(self, agent: ParsedAgent) -> SecurityReport:
+    def scan(self, agent: ParsedAgent):
         findings = []
 
         for parsed_file in agent.files:
             if parsed_file.language == "python":
                 findings.extend(self._scan_python_file(parsed_file))
-
-        score = self._calculate_score(findings)
-
-        return SecurityReport(
-            score=score,
-            findings=findings,
-        )
+        return FindingEngine().process(findings)
 
     def _scan_python_file(self, parsed_file: ParsedFile) -> list[Finding]:
         findings = []
@@ -40,6 +35,8 @@ class SecurityScanner:
         findings.extend(self._check_filesystem_access(tree, parsed_file))
 
         findings.extend(self._check_unsafe_deserialization(tree, parsed_file))
+
+        findings.extend(self._check_sql_injection(tree, parsed_file))
 
         return findings
 
@@ -390,18 +387,124 @@ class SecurityScanner:
 
         return ""
 
-    def _calculate_score(self, findings: list[Finding]) -> int:
-        score = 100
+    def _check_sql_injection(
+        self,
+        tree: ast.AST,
+        parsed_file: ParsedFile,
+    ) -> list[Finding]:
+        rule = get_rule("SA-006")
+        findings = []
 
-        penalties = {
-            "critical": 30,
-            "high": 20,
-            "medium": 10,
-            "low": 5,
-            "info": 0,
+        if rule is None:
+            return findings
+
+        sql_functions = {
+            "execute",
+            "executemany",
+            "executescript",
         }
 
-        for finding in findings:
-            score -= penalties.get(finding.severity, 0)
+        tainted_variables: set[str] = set()
+        dynamic_sql_variables: set[str] = set()
 
-        return max(0, min(100, score))
+        # Find variables directly receiving untrusted input.
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Assign):
+                continue
+
+            if isinstance(node.value, ast.Call):
+                call_name = self._get_call_name(node.value)
+
+                if call_name in {
+                    "input",
+                    "request.args.get",
+                    "request.form.get",
+                    "request.json.get",
+                    "request.get_json",
+                }:
+                    for target in node.targets:
+                        if isinstance(target, ast.Name):
+                            tainted_variables.add(target.id)
+
+        # Track SQL variables built using tainted data.
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Assign):
+                continue
+
+            if not isinstance(node.value, ast.BinOp):
+                continue
+
+            if not isinstance(node.value.op, (ast.Add, ast.Mod)):
+                continue
+
+            names = {
+                child.id
+                for child in ast.walk(node.value)
+                if isinstance(child, ast.Name)
+            }
+
+            if names & tainted_variables:
+                for target in node.targets:
+                    if isinstance(target, ast.Name):
+                        dynamic_sql_variables.add(target.id)
+
+        # Detect dangerous SQL passed to database execution functions.
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call):
+                continue
+
+            call_name = self._get_call_name(node)
+
+            if call_name is None:
+                continue
+
+            if not call_name.endswith(tuple(sql_functions)):
+                continue
+
+            if not node.args:
+                continue
+
+            query = node.args[0]
+            dangerous = False
+            confidence = 0.70
+
+            # Direct f-string containing a variable.
+            if isinstance(query, ast.JoinedStr):
+                dangerous = True
+                confidence = 0.90
+
+            # Direct string concatenation or %-formatting.
+            elif isinstance(query, ast.BinOp):
+                if isinstance(query.op, (ast.Add, ast.Mod)):
+                    dangerous = True
+                    confidence = 0.90
+
+            # Previously constructed tainted SQL.
+            elif isinstance(query, ast.Name) and query.id in dynamic_sql_variables:
+                dangerous = True
+                confidence = 0.95
+
+            if not dangerous:
+                continue
+
+            findings.append(
+                Finding(
+                    title=rule.title,
+                    description=rule.description,
+                    severity=rule.severity,
+                    confidence=confidence,
+                    category=rule.category,
+                    file=parsed_file.path,
+                    line=node.lineno,
+                    evidence=self._get_source_line(
+                        parsed_file.content,
+                        node.lineno,
+                    ),
+                    recommendation=(
+                        "Use parameterized queries or prepared statements "
+                        "instead of dynamically constructing SQL queries."
+                    ),
+                )
+            )
+
+        return findings
