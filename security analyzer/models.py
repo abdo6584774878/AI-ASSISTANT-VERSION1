@@ -37,3 +37,11 @@ class SecurityReport:
     @property
     def low_count(self) -> int:
         return sum(finding.severity == "low" for finding in self.findings)
+    
+    @property
+    def info_count(self) -> int:
+        return sum(finding.severity == "info" for finding in self.findings)
+
+    @property
+    def total_count(self) -> int:
+        return len(self.findings)
