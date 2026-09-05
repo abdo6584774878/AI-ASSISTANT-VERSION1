@@ -11,8 +11,7 @@ class SecurityScanner:
     """Performs deterministic static security analysis."""
     def __init__(self):
         self.taint = TaintAnalyzer()
-        
-        
+
     CHECKERS = (
         "_check_dynamic_execution",
         "_check_command_execution",
@@ -413,113 +412,12 @@ class SecurityScanner:
         tainted_variables = self.taint.find_input_variables(tree)
         tainted_variables = self.taint.propagate_assignments(tree, tainted_variables)
         dynamic_sql_variables: set[str] = set()
+        tainted_variables = self.taint.propagate_function_arguments(tree, tainted_variables)
 
-        # Find variables directly receiving untrusted input.
-        for node in ast.walk(tree):
-            if not isinstance(node, ast.Assign):
-                continue
-
-            if isinstance(node.value, ast.Call):
-                call_name = self.taint.get_call_name(node.value)
-
-                if call_name in {
-                    "input",
-                    "request.args.get",
-                    "request.form.get",
-                    "request.json.get",
-                    "request.get_json",
-                }:
-                    for target in node.targets:
-                        if isinstance(target, ast.Name):
-                            tainted_variables.add(target.id)
-
-        # Propagate taint through simple variable assignments.
-        # Example:
-        # user_input = input(...)
-        # name = user_input
-        # username = name
-        changed = True
-
-        while changed:
-            changed = False
-
-            for node in ast.walk(tree):
-                if not isinstance(node, ast.Assign):
-                    continue
-
-                if not isinstance(node.value, ast.Name):
-                    continue
-
-                if node.value.id not in tainted_variables:
-                    continue
-
-                for target in node.targets:
-                    if not isinstance(target, ast.Name):
-                        continue
-
-                    if target.id not in tainted_variables:
-                        tainted_variables.add(target.id)
-                        changed = True
-
-        # Propagate taint and dynamic SQL through function arguments.
-        #
-        # Example:
-        # user_input = input(...)
-        # find_user(user_input)
-        #
-        # def find_user(name):
-        #     ...
-        #
-        # "name" becomes tainted.
-        function_parameters: dict[str, list[str]] = {}
-
-        for node in ast.walk(tree):
-            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                continue
-
-            parameters = [arg.arg for arg in node.args.args]
-
-            function_parameters[node.name] = parameters
-
-        changed = True
-
-        while changed:
-            changed = False
-
-            for node in ast.walk(tree):
-                if not isinstance(node, ast.Call):
-                    continue
-
-                if not isinstance(node.func, ast.Name):
-                    continue
-
-                function_name = node.func.id
-                parameters = function_parameters.get(function_name)
-
-                if parameters is None:
-                    continue
-
-                for index, argument in enumerate(node.args):
-                    if index >= len(parameters):
-                        break
-
-                    if not isinstance(argument, ast.Name):
-                        continue
-
-                    parameter = parameters[index]
-
-                    # Propagate attacker-controlled data.
-                    if argument.id in tainted_variables:
-                        if parameter not in tainted_variables:
-                            tainted_variables.add(parameter)
-                            changed = True
-
-                    # Propagate dynamically constructed SQL.
-                    if argument.id in dynamic_sql_variables:
-                        if parameter not in dynamic_sql_variables:
-                            dynamic_sql_variables.add(parameter)
-                            changed = True
-
+        tainted_functions = self.taint.find_tainted_return_functions(tree, tainted_variables)
+        tainted_variables = self.taint.propagate_function_returns(tree, tainted_functions, tainted_variables)
+        
+        
         # Track SQL variables built using tainted data.
         for node in ast.walk(tree):
             if not isinstance(node, ast.Assign):
@@ -541,6 +439,11 @@ class SecurityScanner:
                 for target in node.targets:
                     if isinstance(target, ast.Name):
                         dynamic_sql_variables.add(target.id)
+
+            dynamic_sql_variables = self.taint.propagate_function_dynamic_values(
+                tree,
+                dynamic_sql_variables,
+            )
 
         # Detect dangerous SQL passed to database execution functions.
         for node in ast.walk(tree):

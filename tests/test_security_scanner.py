@@ -355,6 +355,31 @@ find_user(user_input)
     assert len(findings) == 1
 
 
+def test_sql_injection_through_function_return(tmp_path):
+    report = scan_code(
+        tmp_path,
+        """
+def get_username():
+    value = request.args.get("username")
+    return value
+
+username = get_username()
+
+cursor.execute(
+    "SELECT * FROM users WHERE name = " + username
+)
+""",
+    )
+
+    findings = [
+        finding for finding in report.findings if finding.category == "sql-injection"
+    ]
+
+    assert len(findings) == 1
+    assert findings[0].severity == "high"
+    assert findings[0].confidence == 0.90
+
+
 def test_detects_path_traversal_from_input(tmp_path):
     code = """
 filename = input("File: ")
@@ -493,4 +518,3 @@ response = requests.get(url)
     assert finding.file is not None
     assert finding.line == 3
     assert "requests.get" in finding.evidence
-
