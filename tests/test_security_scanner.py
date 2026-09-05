@@ -443,6 +443,27 @@ data = open(path).read()
     assert len(findings) == 1
 
 
+def test_path_traversal_through_function_return(tmp_path):
+    report = scan_code(
+        tmp_path,
+        """
+def get_path():
+    return request.args.get("file")
+
+path = get_path()
+open(path)
+""",
+    )
+
+    findings = [
+        finding for finding in report.findings if finding.category == "path-traversal"
+    ]
+
+    assert len(findings) == 1
+    assert findings[0].severity == "high"
+    assert findings[0].confidence == 0.95
+
+
 def test_detects_ssrf_from_input(tmp_path):
     code = """
 url = input("URL: ")
@@ -518,3 +539,41 @@ response = requests.get(url)
     assert finding.file is not None
     assert finding.line == 3
     assert "requests.get" in finding.evidence
+
+
+def test_ssrf_through_function_return(tmp_path):
+    report = scan_code(
+        tmp_path,
+        """
+def get_url():
+    return request.args.get("url")
+
+url = get_url()
+requests.get(url)
+""",
+    )
+
+    findings = [finding for finding in report.findings if finding.category == "ssrf"]
+
+    assert len(findings) == 1
+    assert findings[0].severity == "high"
+    assert findings[0].confidence == 0.95
+
+
+def test_ssrf_through_function_argument(tmp_path):
+    report = scan_code(
+        tmp_path,
+        """
+def fetch(url):
+    requests.get(url)
+
+user_url = request.args.get("url")
+fetch(user_url)
+""",
+    )
+
+    findings = [finding for finding in report.findings if finding.category == "ssrf"]
+
+    assert len(findings) == 1
+    assert findings[0].severity == "high"
+    assert findings[0].confidence == 0.95

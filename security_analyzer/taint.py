@@ -187,24 +187,36 @@ class TaintAnalyzer:
         tree: ast.AST,
         tainted_variables: set[str],
     ) -> set[str]:
-       """Find functions whose return values contain tainted data."""
-       tainted_functions: set[str] = set()
+        """Find functions whose return values contain tainted data."""
+        tainted_functions: set[str] = set()
 
-       for node in ast.walk(tree):
-           if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-               continue
+        for node in ast.walk(tree):
+            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                continue
 
-           for child in ast.walk(node):
-               if not isinstance(child, ast.Return):
-                   continue
+            for child in ast.walk(node):
+                if not isinstance(child, ast.Return):
+                    continue
 
-               if not isinstance(child.value, ast.Name):
-                   continue
+                if child.value is None:
+                    continue
 
-               if child.value.id in tainted_variables:
-                   tainted_functions.add(node.name)
+                # Directly returning an untrusted input source.
+                if isinstance(child.value, ast.Call):
+                    call_name = self.get_call_name(child.value)
 
-       return tainted_functions
+                    if call_name in self.INPUT_SOURCES:
+                        tainted_functions.add(node.name)
+                        continue
+
+                # Returning an already-tainted variable.
+                if (
+                    isinstance(child.value, ast.Name)
+                    and child.value.id in tainted_variables
+                ):
+                    tainted_functions.add(node.name)
+
+        return tainted_functions
 
     def propagate_function_returns(
         self,
@@ -254,3 +266,79 @@ class TaintAnalyzer:
                     changed = True
 
         return tainted_variables
+
+    def propagate_expressions(
+        self,
+        tree: ast.AST,
+        tainted_variables: set[str],
+    ) -> set[str]:
+        """Propagate taint through expressions containing tainted variables."""
+        changed = True
+
+        while changed:
+            changed = False
+
+            for node in ast.walk(tree):
+                if not isinstance(node, ast.Assign):
+                    continue
+
+                if not isinstance(node.value, ast.expr):
+                    continue
+
+                names = {
+                    child.id
+                    for child in ast.walk(node.value)
+                    if isinstance(child, ast.Name)
+                }
+
+                if not names & tainted_variables:
+                    continue
+
+                for target in node.targets:
+                    if not isinstance(target, ast.Name):
+                        continue
+
+                    if target.id not in tainted_variables:
+                        tainted_variables.add(target.id)
+                        changed = True
+
+        return tainted_variables
+
+    def find_dynamic_variables(
+        self,
+        tree: ast.AST,
+        tainted_variables: set[str],
+    ) -> set[str]:
+        """Find variables whose values are dynamically built from tainted data."""
+        dynamic_variables: set[str] = set()
+
+        changed = True
+
+        while changed:
+            changed = False
+
+            for node in ast.walk(tree):
+                if not isinstance(node, ast.Assign):
+                    continue
+
+                if not isinstance(node.value, ast.expr):
+                    continue
+
+                names = {
+                    child.id
+                    for child in ast.walk(node.value)
+                    if isinstance(child, ast.Name)
+                }
+
+                if not names & tainted_variables:
+                    continue
+
+                for target in node.targets:
+                    if not isinstance(target, ast.Name):
+                        continue
+
+                    if target.id not in dynamic_variables:
+                        dynamic_variables.add(target.id)
+                        changed = True
+
+        return dynamic_variables

@@ -416,8 +416,7 @@ class SecurityScanner:
 
         tainted_functions = self.taint.find_tainted_return_functions(tree, tainted_variables)
         tainted_variables = self.taint.propagate_function_returns(tree, tainted_functions, tainted_variables)
-        
-        
+
         # Track SQL variables built using tainted data.
         for node in ast.walk(tree):
             if not isinstance(node, ast.Assign):
@@ -534,6 +533,8 @@ class SecurityScanner:
         tainted_variables = self.taint.find_input_variables(tree)
         tainted_variables = self.taint.propagate_assignments(tree, tainted_variables)
         dynamic_path_variables: set[str] = set()
+        tainted_functions = self.taint.find_tainted_return_functions(tree, tainted_variables)
+        tainted_variables = self.taint.propagate_function_returns(tree, tainted_functions, tainted_variables)
 
         # Find variables directly receiving untrusted input.
         for node in ast.walk(tree):
@@ -706,6 +707,20 @@ class SecurityScanner:
         tainted_variables = self.taint.find_input_variables(tree)
         tainted_variables = self.taint.propagate_assignments(tree, tainted_variables)
         dynamic_url_variables: set[str] = set()
+        tainted_variables = self.taint.propagate_function_arguments(
+            tree,
+            tainted_variables,
+        )
+        tainted_functions = self.taint.find_tainted_return_functions(
+            tree,
+            tainted_variables,
+        )
+
+        tainted_variables = self.taint.propagate_function_returns(
+            tree,
+            tainted_functions,
+            tainted_variables,
+      )
 
         # Find variables directly receiving untrusted input.
         for node in ast.walk(tree):
