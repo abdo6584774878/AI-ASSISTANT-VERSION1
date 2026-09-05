@@ -5,10 +5,24 @@ from .models import Finding
 from .findings import FindingEngine
 from .rules import get_rule
 from .parser import ParsedAgent, ParsedFile
-
+from .taint import TaintAnalyzer
 
 class SecurityScanner:
     """Performs deterministic static security analysis."""
+    def __init__(self):
+        self.taint = TaintAnalyzer()
+        
+        
+    CHECKERS = (
+        "_check_dynamic_execution",
+        "_check_command_execution",
+        "_check_hardcoded_secrets",
+        "_check_filesystem_access",
+        "_check_unsafe_deserialization",
+        "_check_sql_injection",
+        "_check_path_traversal",
+        "_check_ssrf",
+    )
 
     def scan(self, agent: ParsedAgent):
         findings = []
@@ -26,21 +40,9 @@ class SecurityScanner:
         except SyntaxError:
             return findings
 
-        findings.extend(self._check_dynamic_execution(tree, parsed_file))
-
-        findings.extend(self._check_command_execution(tree, parsed_file))
-
-        findings.extend(self._check_hardcoded_secrets(tree, parsed_file))
-
-        findings.extend(self._check_filesystem_access(tree, parsed_file))
-
-        findings.extend(self._check_unsafe_deserialization(tree, parsed_file))
-
-        findings.extend(self._check_sql_injection(tree, parsed_file))
-
-        findings.extend(self._check_path_traversal(tree, parsed_file))
-        
-        findings.extend(self._check_ssrf(tree, parsed_file))
+        for checker_name in self.CHECKERS:
+            checker = getattr(self, checker_name)
+            findings.extend(checker(tree, parsed_file))
 
         return findings
 
@@ -408,7 +410,8 @@ class SecurityScanner:
             "executescript",
         }
 
-        tainted_variables: set[str] = set()
+        tainted_variables = self.taint.find_input_variables(tree)
+        tainted_variables = self.taint.propagate_assignments(tree, tainted_variables)
         dynamic_sql_variables: set[str] = set()
 
         # Find variables directly receiving untrusted input.
@@ -417,7 +420,7 @@ class SecurityScanner:
                 continue
 
             if isinstance(node.value, ast.Call):
-                call_name = self._get_call_name(node.value)
+                call_name = self.taint.get_call_name(node.value)
 
                 if call_name in {
                     "input",
@@ -544,7 +547,7 @@ class SecurityScanner:
             if not isinstance(node, ast.Call):
                 continue
 
-            call_name = self._get_call_name(node)
+            call_name = self.taint.get_call_name(node)
 
             if call_name is None:
                 continue
@@ -625,7 +628,8 @@ class SecurityScanner:
             "os.replace",
         }
 
-        tainted_variables: set[str] = set()
+        tainted_variables = self.taint.find_input_variables(tree)
+        tainted_variables = self.taint.propagate_assignments(tree, tainted_variables)
         dynamic_path_variables: set[str] = set()
 
         # Find variables directly receiving untrusted input.
@@ -636,7 +640,7 @@ class SecurityScanner:
             if not isinstance(node.value, ast.Call):
                 continue
 
-            call_name = self._get_call_name(node.value)
+            call_name = self.taint.get_call_name(node.value)
 
             if call_name in {
                 "input",
@@ -796,7 +800,8 @@ class SecurityScanner:
             "httpx.request",
         }
 
-        tainted_variables: set[str] = set()
+        tainted_variables = self.taint.find_input_variables(tree)
+        tainted_variables = self.taint.propagate_assignments(tree, tainted_variables)
         dynamic_url_variables: set[str] = set()
 
         # Find variables directly receiving untrusted input.
@@ -807,7 +812,7 @@ class SecurityScanner:
             if not isinstance(node.value, ast.Call):
                 continue
 
-            call_name = self._get_call_name(node.value)
+            call_name = self.taint.get_call_name(node.value)
 
             if call_name in {
                 "input",
