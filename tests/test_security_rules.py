@@ -9,6 +9,7 @@ def test_all_security_rules_exist():
         "SA-004",
         "SA-005",
         "SA-006",
+        "SA-007",
     }
 
     assert set(RULES.keys()) == expected_rule_ids
@@ -17,7 +18,7 @@ def test_all_security_rules_exist():
 def test_get_all_rules_returns_all_rules():
     rules = get_all_rules()
 
-    assert len(rules) == 6
+    assert len(rules) == 7
     assert {rule.rule_id for rule in rules} == {
         "SA-001",
         "SA-002",
@@ -25,6 +26,7 @@ def test_get_all_rules_returns_all_rules():
         "SA-004",
         "SA-005",
         "SA-006",
+        "SA-007",
     }
 
 
@@ -85,3 +87,12 @@ def test_sa006_sql_injection_rule():
     assert rule.title == "Potential SQL Injection"
     assert rule.severity == "high"
     assert rule.category == "sql-injection"
+
+
+def test_sa_007_path_traversal_rule():
+    rule = get_rule("SA-007")
+
+    assert rule is not None
+    assert rule.title == "Potential Path Traversal"
+    assert rule.severity == "high"
+    assert rule.category == "path-traversal"

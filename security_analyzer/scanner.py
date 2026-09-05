@@ -38,6 +38,8 @@ class SecurityScanner:
 
         findings.extend(self._check_sql_injection(tree, parsed_file))
 
+        findings.extend(self._check_path_traversal(tree, parsed_file))
+
         return findings
 
     # ---------------------------------------------------------
@@ -426,6 +428,93 @@ class SecurityScanner:
                         if isinstance(target, ast.Name):
                             tainted_variables.add(target.id)
 
+        # Propagate taint through simple variable assignments.
+        # Example:
+        # user_input = input(...)
+        # name = user_input
+        # username = name
+        changed = True
+
+        while changed:
+            changed = False
+
+            for node in ast.walk(tree):
+                if not isinstance(node, ast.Assign):
+                    continue
+
+                if not isinstance(node.value, ast.Name):
+                    continue
+
+                if node.value.id not in tainted_variables:
+                    continue
+
+                for target in node.targets:
+                    if not isinstance(target, ast.Name):
+                        continue
+
+                    if target.id not in tainted_variables:
+                        tainted_variables.add(target.id)
+                        changed = True
+
+        # Propagate taint and dynamic SQL through function arguments.
+        #
+        # Example:
+        # user_input = input(...)
+        # find_user(user_input)
+        #
+        # def find_user(name):
+        #     ...
+        #
+        # "name" becomes tainted.
+        function_parameters: dict[str, list[str]] = {}
+
+        for node in ast.walk(tree):
+            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                continue
+
+            parameters = [arg.arg for arg in node.args.args]
+
+            function_parameters[node.name] = parameters
+
+        changed = True
+
+        while changed:
+            changed = False
+
+            for node in ast.walk(tree):
+                if not isinstance(node, ast.Call):
+                    continue
+
+                if not isinstance(node.func, ast.Name):
+                    continue
+
+                function_name = node.func.id
+                parameters = function_parameters.get(function_name)
+
+                if parameters is None:
+                    continue
+
+                for index, argument in enumerate(node.args):
+                    if index >= len(parameters):
+                        break
+
+                    if not isinstance(argument, ast.Name):
+                        continue
+
+                    parameter = parameters[index]
+
+                    # Propagate attacker-controlled data.
+                    if argument.id in tainted_variables:
+                        if parameter not in tainted_variables:
+                            tainted_variables.add(parameter)
+                            changed = True
+
+                    # Propagate dynamically constructed SQL.
+                    if argument.id in dynamic_sql_variables:
+                        if parameter not in dynamic_sql_variables:
+                            dynamic_sql_variables.add(parameter)
+                            changed = True
+
         # Track SQL variables built using tainted data.
         for node in ast.walk(tree):
             if not isinstance(node, ast.Assign):
@@ -503,6 +592,174 @@ class SecurityScanner:
                     recommendation=(
                         "Use parameterized queries or prepared statements "
                         "instead of dynamically constructing SQL queries."
+                    ),
+                )
+            )
+
+        return findings
+
+    def _check_path_traversal(
+        self,
+        tree: ast.AST,
+        parsed_file: ParsedFile,
+    ) -> list[Finding]:
+        rule = get_rule("SA-007")
+        findings = []
+
+        if rule is None:
+            return findings
+
+        filesystem_functions = {
+            "open",
+            "os.open",
+            "pathlib.Path.open",
+            "pathlib.Path.read_text",
+            "pathlib.Path.read_bytes",
+            "pathlib.Path.write_text",
+            "pathlib.Path.write_bytes",
+            "os.remove",
+            "os.unlink",
+            "os.rename",
+            "os.replace",
+        }
+
+        tainted_variables: set[str] = set()
+        dynamic_path_variables: set[str] = set()
+
+        # Find variables directly receiving untrusted input.
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Assign):
+                continue
+
+            if not isinstance(node.value, ast.Call):
+                continue
+
+            call_name = self._get_call_name(node.value)
+
+            if call_name in {
+                "input",
+                "request.args.get",
+                "request.form.get",
+                "request.json.get",
+                "request.get_json",
+            }:
+                for target in node.targets:
+                    if isinstance(target, ast.Name):
+                        tainted_variables.add(target.id)
+
+        # Propagate taint through simple assignments.
+        changed = True
+
+        while changed:
+            changed = False
+
+            for node in ast.walk(tree):
+                if not isinstance(node, ast.Assign):
+                    continue
+
+                if not isinstance(node.value, ast.Name):
+                    continue
+
+                if node.value.id not in tainted_variables:
+                    continue
+
+                for target in node.targets:
+                    if not isinstance(target, ast.Name):
+                        continue
+
+                    if target.id not in tainted_variables:
+                        tainted_variables.add(target.id)
+                        changed = True
+
+        # Track paths constructed using tainted variables.
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Assign):
+                continue
+
+            value = node.value
+
+            if not isinstance(value, ast.BinOp):
+                continue
+
+            if not isinstance(value.op, (ast.Add, ast.Mod)):
+                continue
+
+            names = {
+                child.id for child in ast.walk(value) if isinstance(child, ast.Name)
+            }
+
+            if not names & tainted_variables:
+                continue
+
+            for target in node.targets:
+                if isinstance(target, ast.Name):
+                    dynamic_path_variables.add(target.id)
+
+        # Detect filesystem operations using dangerous paths.
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call):
+                continue
+
+            call_name = self._get_call_name(node)
+
+            if call_name not in filesystem_functions:
+                continue
+
+            if not node.args:
+                continue
+
+            path_argument = node.args[0]
+
+            names = {
+                child.id
+                for child in ast.walk(path_argument)
+                if isinstance(child, ast.Name)
+            }
+
+            dangerous = False
+            confidence = 0.70
+
+            # Directly tainted path.
+            if (
+                isinstance(path_argument, ast.Name)
+                and path_argument.id in tainted_variables
+            ):
+                dangerous = True
+                confidence = 0.95
+
+            # Previously constructed dynamic path.
+            elif (
+                isinstance(path_argument, ast.Name)
+                and path_argument.id in dynamic_path_variables
+            ):
+                dangerous = True
+                confidence = 0.95
+
+            # Direct path construction using tainted data.
+            elif names & tainted_variables:
+                dangerous = True
+                confidence = 0.90
+
+            if not dangerous:
+                continue
+
+            findings.append(
+                Finding(
+                    title=rule.title,
+                    description=rule.description,
+                    severity=rule.severity,
+                    confidence=confidence,
+                    category=rule.category,
+                    file=parsed_file.path,
+                    line=node.lineno,
+                    evidence=self._get_source_line(
+                        parsed_file.content,
+                        node.lineno,
+                    ),
+                    recommendation=(
+                        "Validate and constrain user-controlled paths to the "
+                        "intended directory. Use safe path resolution and "
+                        "reject paths that escape the allowed base directory."
                     ),
                 )
             )

@@ -71,6 +71,17 @@ RULES = {
         severity="high",
         category="sql-injection",
     ),
+    "SA-007": SecurityRule(
+        rule_id="SA-007",
+        title="Potential Path Traversal",
+        description=(
+            "The agent constructs filesystem paths using potentially "
+            "untrusted input, which may allow access to files outside "
+            "the intended directory."
+        ),
+        severity="high",
+        category="path-traversal",
+    ),
 }
 
 

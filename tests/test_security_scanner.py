@@ -293,3 +293,126 @@ cursor.execute(query)
     assert not any(
         finding.title == "Potential SQL Injection" for finding in report.findings
     )
+
+
+def test_propagates_sql_taint_through_assignment(tmp_path):
+    code = """
+user_input = input("Name: ")
+name = user_input
+query = "SELECT * FROM users WHERE name = '" + name + "'"
+cursor.execute(query)
+"""
+
+    report = scan_code(tmp_path, code)
+
+    findings = [
+        finding for finding in report.findings if finding.category == "sql-injection"
+    ]
+
+    assert len(findings) == 1
+    assert findings[0].severity == "high"
+
+
+def test_propagates_sql_taint_through_function_argument(tmp_path):
+    code = """
+def find_user(name):
+    query = "SELECT * FROM users WHERE name = '" + name + "'"
+    cursor.execute(query)
+
+user_input = input("Name: ")
+find_user(user_input)
+"""
+
+    report = scan_code(tmp_path, code)
+
+    findings = [
+        finding for finding in report.findings if finding.category == "sql-injection"
+    ]
+
+    assert len(findings) == 1
+    assert findings[0].severity == "high"
+
+
+def test_propagates_sql_taint_through_multiple_function_calls(tmp_path):
+    code = """
+def execute_search(query):
+    cursor.execute(query)
+
+def find_user(name):
+    query = "SELECT * FROM users WHERE name = '" + name + "'"
+    execute_search(query)
+
+user_input = input("Name: ")
+find_user(user_input)
+"""
+
+    report = scan_code(tmp_path, code)
+
+    findings = [
+        finding for finding in report.findings if finding.category == "sql-injection"
+    ]
+
+    assert len(findings) == 1
+
+
+def test_detects_path_traversal_from_input(tmp_path):
+    code = """
+filename = input("File: ")
+with open("/app/files/" + filename) as f:
+    data = f.read()
+"""
+
+    report = scan_code(tmp_path, code)
+
+    findings = [
+        finding for finding in report.findings if finding.category == "path-traversal"
+    ]
+
+    assert len(findings) == 1
+    assert findings[0].severity == "high"
+
+
+def test_detects_tainted_path_directly(tmp_path):
+    code = """
+filename = input("File: ")
+data = open(filename).read()
+"""
+
+    report = scan_code(tmp_path, code)
+
+    findings = [
+        finding for finding in report.findings if finding.category == "path-traversal"
+    ]
+
+    assert len(findings) == 1
+
+
+def test_constant_path_is_not_flagged(tmp_path):
+    code = """
+data = open("/app/config.json").read()
+"""
+
+    report = scan_code(tmp_path, code)
+
+    findings = [
+        finding for finding in report.findings if finding.category == "path-traversal"
+    ]
+
+    assert len(findings) == 0
+
+
+def test_propagates_path_taint_through_assignment(tmp_path):
+    code = """
+user_input = input("File: ")
+filename = user_input
+path = "/app/files/" + filename
+data = open(path).read()
+"""
+
+    report = scan_code(tmp_path, code)
+
+    findings = [
+        finding for finding in report.findings if finding.category == "path-traversal"
+    ]
+
+    assert len(findings) == 1
