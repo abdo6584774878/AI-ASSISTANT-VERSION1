@@ -416,3 +416,81 @@ data = open(path).read()
     ]
 
     assert len(findings) == 1
+
+
+def test_detects_ssrf_from_input(tmp_path):
+    code = """
+url = input("URL: ")
+response = requests.get(url)
+"""
+
+    report = scan_code(tmp_path, code)
+
+    findings = [finding for finding in report.findings if finding.category == "ssrf"]
+
+    assert len(findings) == 1
+    assert findings[0].severity == "high"
+
+
+def test_detects_ssrf_from_dynamic_url(tmp_path):
+    code = """
+host = input("Host: ")
+url = "http://" + host
+response = requests.get(url)
+"""
+
+    report = scan_code(tmp_path, code)
+
+    findings = [finding for finding in report.findings if finding.category == "ssrf"]
+
+    assert len(findings) == 1
+
+
+def test_constant_url_is_not_flagged_as_ssrf(tmp_path):
+    code = """
+response = requests.get("https://example.com")
+"""
+
+    report = scan_code(tmp_path, code)
+
+    findings = [finding for finding in report.findings if finding.category == "ssrf"]
+
+    assert len(findings) == 0
+
+
+def test_propagates_ssrf_taint_through_assignment(tmp_path):
+    code = """
+user_input = input("URL: ")
+url = user_input
+response = requests.get(url)
+"""
+
+    report = scan_code(tmp_path, code)
+
+    findings = [finding for finding in report.findings if finding.category == "ssrf"]
+
+    assert len(findings) == 1
+
+
+def test_ssrf_finding_metadata(tmp_path):
+    code = """
+url = input("URL: ")
+response = requests.get(url)
+"""
+
+    report = scan_code(tmp_path, code)
+
+    findings = [finding for finding in report.findings if finding.category == "ssrf"]
+
+    assert len(findings) == 1
+
+    finding = findings[0]
+
+    assert finding.title == "Potential Server-Side Request Forgery"
+    assert finding.severity == "high"
+    assert finding.category == "ssrf"
+    assert finding.confidence == 0.95
+    assert finding.file is not None
+    assert finding.line == 3
+    assert "requests.get" in finding.evidence
+

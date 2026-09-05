@@ -39,6 +39,8 @@ class SecurityScanner:
         findings.extend(self._check_sql_injection(tree, parsed_file))
 
         findings.extend(self._check_path_traversal(tree, parsed_file))
+        
+        findings.extend(self._check_ssrf(tree, parsed_file))
 
         return findings
 
@@ -760,6 +762,178 @@ class SecurityScanner:
                         "Validate and constrain user-controlled paths to the "
                         "intended directory. Use safe path resolution and "
                         "reject paths that escape the allowed base directory."
+                    ),
+                )
+            )
+
+        return findings
+
+    def _check_ssrf(
+        self,
+        tree: ast.AST,
+        parsed_file: ParsedFile,
+    ) -> list[Finding]:
+        rule = get_rule("SA-008")
+        findings = []
+
+        if rule is None:
+            return findings
+
+        network_functions = {
+            "requests.get",
+            "requests.post",
+            "requests.put",
+            "requests.patch",
+            "requests.delete",
+            "requests.head",
+            "requests.options",
+            "urllib.request.urlopen",
+            "httpx.get",
+            "httpx.post",
+            "httpx.put",
+            "httpx.patch",
+            "httpx.delete",
+            "httpx.request",
+        }
+
+        tainted_variables: set[str] = set()
+        dynamic_url_variables: set[str] = set()
+
+        # Find variables directly receiving untrusted input.
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Assign):
+                continue
+
+            if not isinstance(node.value, ast.Call):
+                continue
+
+            call_name = self._get_call_name(node.value)
+
+            if call_name in {
+                "input",
+                "request.args.get",
+                "request.form.get",
+                "request.json.get",
+                "request.get_json",
+            }:
+                for target in node.targets:
+                    if isinstance(target, ast.Name):
+                        tainted_variables.add(target.id)
+
+        # Propagate taint through simple assignments.
+        changed = True
+
+        while changed:
+            changed = False
+
+            for node in ast.walk(tree):
+                if not isinstance(node, ast.Assign):
+                    continue
+
+                if not isinstance(node.value, ast.Name):
+                    continue
+
+                if node.value.id not in tainted_variables:
+                    continue
+
+                for target in node.targets:
+                    if not isinstance(target, ast.Name):
+                        continue
+
+                    if target.id not in tainted_variables:
+                        tainted_variables.add(target.id)
+                        changed = True
+
+        # Track URLs constructed using tainted data.
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Assign):
+                continue
+
+            value = node.value
+
+            if not isinstance(value, ast.BinOp):
+                continue
+
+            if not isinstance(value.op, (ast.Add, ast.Mod)):
+                continue
+
+            names = {
+                child.id for child in ast.walk(value) if isinstance(child, ast.Name)
+            }
+
+            if not names & tainted_variables:
+                continue
+
+            for target in node.targets:
+                if isinstance(target, ast.Name):
+                    dynamic_url_variables.add(target.id)
+
+        # Detect network requests using attacker-controlled URLs.
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call):
+                continue
+
+            call_name = self._get_call_name(node)
+
+            if call_name not in network_functions:
+                continue
+
+            if not node.args:
+                continue
+
+            url_argument = node.args[0]
+
+            names = {
+                child.id
+                for child in ast.walk(url_argument)
+                if isinstance(child, ast.Name)
+            }
+
+            dangerous = False
+            confidence = 0.70
+
+            # Directly tainted URL.
+            if (
+                isinstance(url_argument, ast.Name)
+                and url_argument.id in tainted_variables
+            ):
+                dangerous = True
+                confidence = 0.95
+
+            # Previously constructed dynamic URL.
+            elif (
+                isinstance(url_argument, ast.Name)
+                and url_argument.id in dynamic_url_variables
+            ):
+                dangerous = True
+                confidence = 0.95
+
+            # Direct URL construction using tainted data.
+            elif names & tainted_variables:
+                dangerous = True
+                confidence = 0.90
+
+            if not dangerous:
+                continue
+
+            findings.append(
+                Finding(
+                    title=rule.title,
+                    description=rule.description,
+                    severity=rule.severity,
+                    confidence=confidence,
+                    category=rule.category,
+                    file=parsed_file.path,
+                    line=node.lineno,
+                    evidence=self._get_source_line(
+                        parsed_file.content,
+                        node.lineno,
+                    ),
+                    recommendation=(
+                        "Validate and restrict user-controlled URLs using an "
+                        "allowlist of permitted hosts and schemes. Block "
+                        "access to internal, loopback, and cloud metadata "
+                        "endpoints."
                     ),
                 )
             )

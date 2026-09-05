@@ -10,6 +10,7 @@ def test_all_security_rules_exist():
         "SA-005",
         "SA-006",
         "SA-007",
+        "SA-008",
     }
 
     assert set(RULES.keys()) == expected_rule_ids
@@ -18,7 +19,7 @@ def test_all_security_rules_exist():
 def test_get_all_rules_returns_all_rules():
     rules = get_all_rules()
 
-    assert len(rules) == 7
+    assert len(rules) == 8
     assert {rule.rule_id for rule in rules} == {
         "SA-001",
         "SA-002",
@@ -27,6 +28,7 @@ def test_get_all_rules_returns_all_rules():
         "SA-005",
         "SA-006",
         "SA-007",
+        "SA-008",
     }
 
 
@@ -96,3 +98,12 @@ def test_sa_007_path_traversal_rule():
     assert rule.title == "Potential Path Traversal"
     assert rule.severity == "high"
     assert rule.category == "path-traversal"
+
+
+def test_sa_008_ssrf_rule():
+    rule = get_rule("SA-008")
+
+    assert rule is not None
+    assert rule.title == "Potential Server-Side Request Forgery"
+    assert rule.severity == "high"
+    assert rule.category == "ssrf"

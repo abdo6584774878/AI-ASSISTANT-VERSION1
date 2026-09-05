@@ -82,6 +82,17 @@ RULES = {
         severity="high",
         category="path-traversal",
     ),
+    "SA-008": SecurityRule(
+        rule_id="SA-008",
+        title="Potential Server-Side Request Forgery",
+        description=(
+            "The agent makes network requests using potentially untrusted "
+            "input, which may allow an attacker to access internal or "
+            "restricted network resources."
+        ),
+        severity="high",
+        category="ssrf",
+    ),
 }
 
 
