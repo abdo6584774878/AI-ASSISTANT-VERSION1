@@ -7,8 +7,10 @@ from .rules import get_rule
 from .parser import ParsedAgent, ParsedFile
 from .taint import TaintAnalyzer
 
+
 class SecurityScanner:
     """Performs deterministic static security analysis."""
+
     def __init__(self):
         self.taint = TaintAnalyzer()
 
@@ -410,39 +412,32 @@ class SecurityScanner:
         }
 
         tainted_variables = self.taint.find_input_variables(tree)
-        tainted_variables = self.taint.propagate_assignments(tree, tainted_variables)
-        dynamic_sql_variables: set[str] = set()
-        tainted_variables = self.taint.propagate_function_arguments(tree, tainted_variables)
 
-        tainted_functions = self.taint.find_tainted_return_functions(tree, tainted_variables)
-        tainted_variables = self.taint.propagate_function_returns(tree, tainted_functions, tainted_variables)
+        tainted_variables = self.taint.propagate_assignments(
+            tree,
+            tainted_variables,
+        )
 
-        # Track SQL variables built using tainted data.
-        for node in ast.walk(tree):
-            if not isinstance(node, ast.Assign):
-                continue
+        tainted_variables = self.taint.propagate_function_arguments(
+            tree,
+            tainted_variables,
+        )
 
-            if not isinstance(node.value, ast.BinOp):
-                continue
+        tainted_functions = self.taint.find_tainted_return_functions(
+            tree,
+            tainted_variables,
+        )
 
-            if not isinstance(node.value.op, (ast.Add, ast.Mod)):
-                continue
+        tainted_variables = self.taint.propagate_function_returns(
+            tree,
+            tainted_functions,
+            tainted_variables,
+        )
 
-            names = {
-                child.id
-                for child in ast.walk(node.value)
-                if isinstance(child, ast.Name)
-            }
-
-            if names & tainted_variables:
-                for target in node.targets:
-                    if isinstance(target, ast.Name):
-                        dynamic_sql_variables.add(target.id)
-
-            dynamic_sql_variables = self.taint.propagate_function_dynamic_values(
-                tree,
-                dynamic_sql_variables,
-            )
+        dynamic_sql_variables = self.taint.find_dynamic_variables(
+            tree,
+            tainted_variables,
+        )
 
         # Detect dangerous SQL passed to database execution functions.
         for node in ast.walk(tree):
@@ -532,85 +527,28 @@ class SecurityScanner:
 
         tainted_variables = self.taint.find_input_variables(tree)
         tainted_variables = self.taint.propagate_assignments(tree, tainted_variables)
-        dynamic_path_variables: set[str] = set()
+        tainted_variables = self.taint.propagate_function_arguments(tree, tainted_variables)
         tainted_functions = self.taint.find_tainted_return_functions(tree, tainted_variables)
-        tainted_variables = self.taint.propagate_function_returns(tree, tainted_functions, tainted_variables)
+        tainted_functions = self.taint.find_tainted_return_functions(
+            tree, tainted_variables
+        )
+        tainted_variables = self.taint.propagate_function_returns(
+            tree,
+            tainted_functions,
+            tainted_variables,
+        )
 
-        # Find variables directly receiving untrusted input.
-        for node in ast.walk(tree):
-            if not isinstance(node, ast.Assign):
-                continue
-
-            if not isinstance(node.value, ast.Call):
-                continue
-
-            call_name = self.taint.get_call_name(node.value)
-
-            if call_name in {
-                "input",
-                "request.args.get",
-                "request.form.get",
-                "request.json.get",
-                "request.get_json",
-            }:
-                for target in node.targets:
-                    if isinstance(target, ast.Name):
-                        tainted_variables.add(target.id)
-
-        # Propagate taint through simple assignments.
-        changed = True
-
-        while changed:
-            changed = False
-
-            for node in ast.walk(tree):
-                if not isinstance(node, ast.Assign):
-                    continue
-
-                if not isinstance(node.value, ast.Name):
-                    continue
-
-                if node.value.id not in tainted_variables:
-                    continue
-
-                for target in node.targets:
-                    if not isinstance(target, ast.Name):
-                        continue
-
-                    if target.id not in tainted_variables:
-                        tainted_variables.add(target.id)
-                        changed = True
-
-        # Track paths constructed using tainted variables.
-        for node in ast.walk(tree):
-            if not isinstance(node, ast.Assign):
-                continue
-
-            value = node.value
-
-            if not isinstance(value, ast.BinOp):
-                continue
-
-            if not isinstance(value.op, (ast.Add, ast.Mod)):
-                continue
-
-            names = {
-                child.id for child in ast.walk(value) if isinstance(child, ast.Name)
-            }
-
-            if not names & tainted_variables:
-                continue
-
-            for target in node.targets:
-                if isinstance(target, ast.Name):
-                    dynamic_path_variables.add(target.id)
+        dynamic_path_variables = self.taint.find_dynamic_variables(
+            tree,
+            tainted_variables,
+        )
 
         # Detect filesystem operations using dangerous paths.
         for node in ast.walk(tree):
             if not isinstance(node, ast.Call):
                 continue
 
-            call_name = self._get_call_name(node)
+            call_name = self.taint.get_call_name(node)
 
             if call_name not in filesystem_functions:
                 continue
@@ -720,7 +658,7 @@ class SecurityScanner:
             tree,
             tainted_functions,
             tainted_variables,
-      )
+        )
 
         # Find variables directly receiving untrusted input.
         for node in ast.walk(tree):
