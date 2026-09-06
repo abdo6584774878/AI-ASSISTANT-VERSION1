@@ -142,3 +142,120 @@ url = "https://example.com/?target=" + user_input
 
     assert "url" in dynamic_variables
     assert "user_input" not in dynamic_variables
+
+
+def test_find_dynamic_variables_propagates_dynamic_values():
+    source = """
+user_input = input()
+path = user_input + "/file.txt"
+path2 = path + "/backup"
+"""
+
+    tree = ast.parse(source)
+
+    analyzer = TaintAnalyzer()
+
+    tainted = analyzer.find_input_variables(tree)
+    dynamic = analyzer.find_dynamic_variables(tree, tainted)
+
+    assert "path" in dynamic
+    assert "path2" in dynamic
+
+
+def test_dynamic_values_propagate_through_function_arguments():
+    source = """
+user_url = request.args.get("url")
+url = "https://example.com/?target=" + user_url
+
+def fetch(target):
+    return target
+
+result = fetch(url)
+"""
+
+    tree = ast.parse(source)
+    taint = TaintAnalyzer()
+
+    tainted_variables = taint.find_input_variables(tree)
+
+    dynamic_variables = taint.find_dynamic_variables(
+        tree,
+        tainted_variables,
+    )
+
+    dynamic_variables = taint.propagate_function_dynamic_values(
+        tree,
+        dynamic_variables,
+    )
+
+    assert "url" in dynamic_variables
+    assert "target" in dynamic_variables
+
+
+def test_dynamic_taint_flows_through_function_and_return():
+    source = """
+user_input = request.args.get("url")
+url = "https://example.com/?target=" + user_input
+
+def fetch(target):
+    modified = target + "&safe=true"
+    return modified
+
+result = fetch(url)
+"""
+
+    tree = ast.parse(source)
+    taint = TaintAnalyzer()
+
+    tainted_variables = taint.find_input_variables(tree)
+
+    tainted_variables = taint.propagate_expressions(
+        tree,
+        tainted_variables,
+    )
+
+    dynamic_variables = taint.find_dynamic_variables(
+        tree,
+        tainted_variables,
+    )
+
+    dynamic_variables = taint.propagate_function_dynamic_values(
+        tree,
+        dynamic_variables,
+    )
+
+    # Re-run expression analysis after dynamic values
+    # have entered the function.
+    dynamic_variables |= taint.find_dynamic_variables(
+        tree,
+        tainted_variables | dynamic_variables,
+    )
+
+    assert "url" in dynamic_variables
+    assert "target" in dynamic_variables
+    assert "modified" in dynamic_variables
+
+
+def test_analyze_runs_complete_taint_pipeline():
+    source = """
+user_input = request.args.get("url")
+url = "https://example.com/?target=" + user_input
+
+def fetch(target):
+    modified = target + "&safe=true"
+    return modified
+
+result = fetch(url)
+"""
+
+    tree = ast.parse(source)
+    taint = TaintAnalyzer()
+
+    analysis = taint.analyze(tree)
+
+    assert "user_input" in analysis.tainted_variables
+    assert "url" in analysis.tainted_variables
+
+    assert "url" in analysis.dynamic_variables
+    assert "target" in analysis.dynamic_variables
+    assert "modified" in analysis.dynamic_variables

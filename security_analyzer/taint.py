@@ -1,4 +1,12 @@
 import ast
+from dataclasses import dataclass
+
+
+@dataclass
+class TaintAnalysis:
+    tainted_variables: set[str]
+    dynamic_variables: set[str]
+    tainted_functions: set[str]
 
 
 class TaintAnalyzer:
@@ -11,6 +19,57 @@ class TaintAnalyzer:
         "request.json.get",
         "request.get_json",
     }
+
+    def analyze(self, tree: ast.AST) -> TaintAnalysis:
+        """Run the complete taint-analysis pipeline."""
+        tainted_variables = self.find_input_variables(tree)
+
+        tainted_variables = self.propagate_assignments(
+            tree,
+            tainted_variables,
+        )
+
+        tainted_variables = self.propagate_function_arguments(
+            tree,
+            tainted_variables,
+        )
+
+        tainted_variables = self.propagate_expressions(
+            tree,
+            tainted_variables,
+        )
+
+        tainted_functions = self.find_tainted_return_functions(
+            tree,
+            tainted_variables,
+        )
+
+        tainted_variables = self.propagate_function_returns(
+            tree,
+            tainted_functions,
+            tainted_variables,
+        )
+
+        dynamic_variables = self.find_dynamic_variables(
+            tree,
+            tainted_variables,
+        )
+
+        dynamic_variables = self.propagate_function_dynamic_values(
+            tree,
+            dynamic_variables,
+        )
+
+        dynamic_variables |= self.find_dynamic_variables(
+            tree,
+            tainted_variables | dynamic_variables,
+        )
+
+        return TaintAnalysis(
+            tainted_variables=tainted_variables,
+            dynamic_variables=dynamic_variables,
+            tainted_functions=tainted_functions,
+        )
 
     def get_call_name(self, node: ast.Call) -> str | None:
         if isinstance(node.func, ast.Name):
@@ -330,7 +389,7 @@ class TaintAnalyzer:
                     if isinstance(child, ast.Name)
                 }
 
-                if not names & tainted_variables:
+                if not names & (tainted_variables | dynamic_variables):
                     continue
 
                 for target in node.targets:
