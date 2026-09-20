@@ -5,7 +5,7 @@ from .models import Finding
 from .findings import FindingEngine
 from .rules import get_rule
 from .parser import ParsedAgent, ParsedFile
-from .taint import TaintAnalyzer
+from .taint import TaintAnalyzer, TaintAnalysis
 
 
 class SecurityScanner:
@@ -40,10 +40,18 @@ class SecurityScanner:
             tree = ast.parse(parsed_file.content)
         except SyntaxError:
             return findings
-
+        analysis = self.taint.analyze(tree)
+        taint_chekers = {
+            "_check_sql_injection",
+            "_check_path_traversal",
+            "_check_ssrf",
+        }
         for checker_name in self.CHECKERS:
             checker = getattr(self, checker_name)
-            findings.extend(checker(tree, parsed_file))
+            if checker_name in taint_chekers:
+                findings.extend(checker(tree, parsed_file, analysis))
+            else:
+                findings.extend(checker(tree,  parsed_file))
 
         return findings
 
@@ -54,6 +62,7 @@ class SecurityScanner:
     def _check_dynamic_execution(
         self,
         tree: ast.AST,
+        
         parsed_file: ParsedFile,
     ) -> list[Finding]:
         findings = []
@@ -393,11 +402,14 @@ class SecurityScanner:
             return lines[line_number - 1].strip()
 
         return ""
-
+#---------------------------------------------------------
+#           ssh-006: SQL Injection
+#---------------------------------------------------------
     def _check_sql_injection(
         self,
         tree: ast.AST,
         parsed_file: ParsedFile,
+        analysis: TaintAnalysis
     ) -> list[Finding]:
         rule = get_rule("SA-006")
         findings = []
@@ -411,33 +423,8 @@ class SecurityScanner:
             "executescript",
         }
 
-        tainted_variables = self.taint.find_input_variables(tree)
-
-        tainted_variables = self.taint.propagate_assignments(
-            tree,
-            tainted_variables,
-        )
-
-        tainted_variables = self.taint.propagate_function_arguments(
-            tree,
-            tainted_variables,
-        )
-
-        tainted_functions = self.taint.find_tainted_return_functions(
-            tree,
-            tainted_variables,
-        )
-
-        tainted_variables = self.taint.propagate_function_returns(
-            tree,
-            tainted_functions,
-            tainted_variables,
-        )
-
-        dynamic_sql_variables = self.taint.find_dynamic_variables(
-            tree,
-            tainted_variables,
-        )
+        tainted_variables = analysis.tainted_variables
+        dynamic_sql_variables = analysis.dynamic_variables
 
         # Detect dangerous SQL passed to database execution functions.
         for node in ast.walk(tree):
@@ -504,6 +491,7 @@ class SecurityScanner:
         self,
         tree: ast.AST,
         parsed_file: ParsedFile,
+        analysis: TaintAnalysis
     ) -> list[Finding]:
         rule = get_rule("SA-007")
         findings = []
@@ -525,24 +513,8 @@ class SecurityScanner:
             "os.replace",
         }
 
-        tainted_variables = self.taint.find_input_variables(tree)
-        tainted_variables = self.taint.propagate_assignments(tree, tainted_variables)
-        tainted_variables = self.taint.propagate_function_arguments(tree, tainted_variables)
-        tainted_functions = self.taint.find_tainted_return_functions(tree, tainted_variables)
-        tainted_functions = self.taint.find_tainted_return_functions(
-            tree, tainted_variables
-        )
-        tainted_variables = self.taint.propagate_function_returns(
-            tree,
-            tainted_functions,
-            tainted_variables,
-        )
-
-        dynamic_path_variables = self.taint.find_dynamic_variables(
-            tree,
-            tainted_variables,
-        )
-
+        tainted_variables = analysis.tainted_variables
+        dynamic_path_variables = analysis.dynamic_variables
         # Detect filesystem operations using dangerous paths.
         for node in ast.walk(tree):
             if not isinstance(node, ast.Call):
@@ -618,6 +590,7 @@ class SecurityScanner:
         self,
         tree: ast.AST,
         parsed_file: ParsedFile,
+        analysis: TaintAnalysis,
     ) -> list[Finding]:
         rule = get_rule("SA-008")
         findings = []
