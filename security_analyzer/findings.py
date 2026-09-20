@@ -38,12 +38,12 @@ class FindingEngine:
         normalized = [self._normalize_finding(finding) for finding in findings]
 
         deduplicated = self._deduplicate(normalized)
-
+        sorted_findings = self.sort_by_severity(deduplicated)
         score = self._calculate_score(deduplicated)
 
         return SecurityReport(
             score=score,
-            findings=deduplicated,
+            findings=sorted_findings,
         )
 
     def _normalize_finding(

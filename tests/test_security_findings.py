@@ -203,3 +203,31 @@ def test_sort_same_severity_by_confidence():
 
     assert sorted_findings[0].confidence == 0.95
     assert sorted_findings[1].confidence == 0.6
+
+
+def test_process_sorts_findings_by_severity_and_confidence():
+    engine = FindingEngine()
+
+    findings = [
+        make_finding(
+            severity="low",
+            confidence=0.99,
+            title="Low issue",
+        ),
+        make_finding(
+            severity="critical",
+            confidence=0.70,
+            title="Critical issue",
+        ),
+        make_finding(
+            severity="high",
+            confidence=0.95,
+            title="High issue",
+        ),
+    ]
+
+    report = engine.process(findings)
+
+    assert report.findings[0].severity == "critical"
+    assert report.findings[1].severity == "high"
+    assert report.findings[2].severity == "low"
