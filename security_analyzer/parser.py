@@ -61,6 +61,7 @@ class AgentParser:
             root_path=str(root.resolve()),
             files=files,
             dependencies=dependencies,
+            configs=self._find_configs(root),
         )
 
     def _parse_directory(self, root: Path) -> list[ParsedFile]:
@@ -157,6 +158,36 @@ class AgentParser:
             return ".".join(reversed(parts))
 
         return None
+
+    def _find_configs(self, root: Path) -> list[str]:
+        configs = []
+
+        if root.is_file():
+            root = root.parent
+
+        config_names = {
+            "config.json",
+            "settings.json",
+            "config.yaml",
+            "config.yml",
+            "settings.yaml",
+            "settings.yml",
+            ".env",
+        }
+
+        for path in root.rglob("*"):
+            if not path.is_file():
+                continue
+
+            if path.name not in config_names:
+                continue
+
+            if any(ignored in path.parts for ignored in self.IGNORED_DIRECTORIES):
+                continue
+
+            configs.append(str(path))
+
+        return configs
 
     def _find_dependencies(self, root: Path) -> list[str]:
         dependencies = []

@@ -1,5 +1,5 @@
 from security_analyzer.parser import AgentParser
-
+from pathlib import Path
 
 def test_parse_python_file(tmp_path):
     agent_file = tmp_path / "agent.py"
@@ -145,3 +145,27 @@ def test_missing_path_raises_error(tmp_path):
         assert False, "Expected FileNotFoundError"
     except FileNotFoundError:
         pass
+
+
+def test_parser_collects_config_files(tmp_path):
+    (tmp_path / "agent.py").write_text(
+        "print('hello')",
+        encoding="utf-8",
+    )
+
+    (tmp_path / "config.json").write_text(
+        '{"permissions": ["filesystem"]}',
+        encoding="utf-8",
+    )
+
+    (tmp_path / "settings.yaml").write_text(
+        "permissions:\n  - network\n",
+        encoding="utf-8",
+    )
+
+    agent = AgentParser().parse(str(tmp_path))
+
+    config_names = {Path(path).name for path in agent.configs}
+
+    assert "config.json" in config_names
+    assert "settings.yaml" in config_names
